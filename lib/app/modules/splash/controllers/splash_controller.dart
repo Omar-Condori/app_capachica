@@ -11,7 +11,7 @@ class SplashController extends GetxController {
 
   void _navigateToHome() {
     print('Iniciando navegación al home en 3 segundos...');
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 3), () {
       print('Navegando al home...');
       Get.offAllNamed(AppRoutes.HOME);
     });

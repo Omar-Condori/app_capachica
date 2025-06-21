@@ -18,6 +18,8 @@ class AppPages {
       name: AppRoutes.HOME,
       page: () => HomeScreen(),
       binding: HomeBinding(),
+      transition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 800),
     ),
   ];
 }
