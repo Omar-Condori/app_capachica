@@ -103,7 +103,7 @@ class HomeScreen extends GetView<HomeController> {
               _buildTopNavItem('Resumen', controller.selectedTopNav.value == 'Resumen', screenWidth),
               _buildTopNavItem('Negocios', controller.selectedTopNav.value == 'Negocios', screenWidth),
               _buildTopNavItem('Servicios', controller.selectedTopNav.value == 'Servicios', screenWidth),
-              _buildTopNavItem('Planes', controller.selectedTopNav.value == 'Planes', screenWidth),
+              _buildTopNavItem('Mi Perfil', controller.selectedTopNav.value == 'Mi Perfil', screenWidth),
             ],
           ),
         ),
