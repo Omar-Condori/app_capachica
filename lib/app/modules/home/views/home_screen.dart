@@ -234,11 +234,11 @@ class HomeScreen extends GetView<HomeController> {
         ),
         decoration: BoxDecoration(
           color: isFilled
-              ? Color(0xFF2E7D32).withOpacity(0.9)
+              ? Color(0xFFFF9100).withOpacity(0.9)
               : Colors.white.withOpacity(0.1),
           border: Border.all(
             color: isFilled
-                ? Color(0xFF2E7D32)
+                ? Color(0xFFFF9100)
                 : Colors.white.withOpacity(0.6),
             width: 1.5,
           ),
