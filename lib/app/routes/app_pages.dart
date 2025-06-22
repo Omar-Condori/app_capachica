@@ -3,10 +3,14 @@ import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_screen.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_screen.dart';
+import '../modules/login/bindings/login_binding.dart';
+import '../modules/login/views/login_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
   AppPages._();
+
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
     GetPage(
@@ -21,5 +25,22 @@ class AppPages {
       transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 800),
     ),
+    GetPage(
+      name: AppRoutes.LOGIN,
+      page: () => LoginScreen(),
+      binding: LoginBinding(),
+    ),
   ];
+}
+
+abstract class Routes {
+  static const SPLASH = _Paths.SPLASH;
+  static const HOME = _Paths.HOME;
+  static const LOGIN = _Paths.LOGIN;
+}
+
+abstract class _Paths {
+  static const SPLASH = '/splash';
+  static const HOME = '/home';
+  static const LOGIN = '/login';
 }

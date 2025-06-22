@@ -69,24 +69,24 @@ class HomeScreen extends GetView<HomeController> {
             ),
           ),
 
-          // Profile Dropdown Menu
-          Obx(() => controller.showProfileDropdown.value
-              ? _buildProfileDropdown(screenWidth, screenHeight)
-              : SizedBox.shrink()
-          ),
-
-          // Overlay para cerrar dropdown
+          // Overlay para cerrar dropdown (MOVIDO ANTES DEL MENÚ)
+          // Esta capa transparente ahora está detrás del menú, permitiendo
+          // que los botones del menú reciban los toques.
           Obx(() => controller.showProfileDropdown.value
               ? GestureDetector(
-            onTap: () => controller.hideProfileDropdown(),
-            child: Container(
-              color: Colors.transparent,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-          )
-              : SizedBox.shrink()
-          ),
+                  onTap: () => controller.hideProfileDropdown(),
+                  child: Container(
+                    color: Colors.transparent,
+                    width: double.infinity,
+                    height: double.infinity,
+                  ),
+                )
+              : SizedBox.shrink()),
+                
+          // Profile Dropdown Menu (AHORA ENCIMA DEL OVERLAY)
+          Obx(() => controller.showProfileDropdown.value
+              ? _buildProfileDropdown(screenWidth, screenHeight)
+              : SizedBox.shrink()),
         ],
       ),
     );

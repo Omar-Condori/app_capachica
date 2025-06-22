@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../routes/app_routes.dart';
 
 class HomeController extends GetxController {
   // Variables observables
@@ -59,19 +60,7 @@ class HomeController extends GetxController {
   // Métodos para manejar las opciones del dropdown
   void onLoginTap() {
     hideProfileDropdown();
-    print('Login presionado');
-    Get.snackbar(
-      'Iniciar Sesión',
-      'Redirigiendo al login...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFF2E7D32).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-      icon: Icon(Icons.login, color: Colors.white),
-    );
-    // Aquí navegarías a la pantalla de login
-    // Get.toNamed('/login');
+    Get.toNamed(AppRoutes.LOGIN);
   }
 
   void onMyAccountTap() {
