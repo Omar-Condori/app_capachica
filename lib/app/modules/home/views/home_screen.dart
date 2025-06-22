@@ -68,6 +68,25 @@ class HomeScreen extends GetView<HomeController> {
               ],
             ),
           ),
+
+          // Profile Dropdown Menu
+          Obx(() => controller.showProfileDropdown.value
+              ? _buildProfileDropdown(screenWidth, screenHeight)
+              : SizedBox.shrink()
+          ),
+
+          // Overlay para cerrar dropdown
+          Obx(() => controller.showProfileDropdown.value
+              ? GestureDetector(
+            onTap: () => controller.hideProfileDropdown(),
+            child: Container(
+              color: Colors.transparent,
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          )
+              : SizedBox.shrink()
+          ),
         ],
       ),
     );
@@ -76,12 +95,12 @@ class HomeScreen extends GetView<HomeController> {
   Widget _buildTopNavigation(double screenWidth) {
     return Container(
       margin: EdgeInsets.symmetric(
-          horizontal: screenWidth * 0.05,
+          horizontal: screenWidth * 0.03, // Reducido para más espacio
           vertical: 20
       ),
       child: Obx(
             () => Container(
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          padding: EdgeInsets.symmetric(vertical: 6, horizontal: 8), // Reducido
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.1),
             borderRadius: BorderRadius.circular(25),
@@ -112,30 +131,304 @@ class HomeScreen extends GetView<HomeController> {
   }
 
   Widget _buildTopNavItem(String title, bool isSelected, double screenWidth) {
-    return GestureDetector(
-      onTap: () => controller.onTopNavTap(title),
+    // Calculamos el tamaño de fuente dinámicamente
+    double fontSize = screenWidth < 350 ? 10 : (screenWidth < 400 ? 11 : 12);
+    double horizontalPadding = screenWidth < 350 ? 4 : (screenWidth < 400 ? 6 : 8);
+
+    return Flexible( // Cambiado a Flexible para evitar overflow
+      child: GestureDetector(
+        onTap: () => controller.onTopNavTap(title),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(
+              vertical: 8,
+              horizontal: horizontalPadding
+          ),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Colors.white.withOpacity(0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: isSelected
+                ? Border.all(color: Colors.white.withOpacity(0.3), width: 1)
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible( // Agregado Flexible al texto
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.white70,
+                    fontSize: fontSize,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    letterSpacing: 0.3, // Reducido
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis, // Previene overflow
+                ),
+              ),
+              if (title == 'Mi Perfil') ...[
+                SizedBox(width: 2), // Reducido
+                AnimatedRotation(
+                  turns: controller.showProfileDropdown.value ? 0.5 : 0,
+                  duration: Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: isSelected ? Colors.white : Colors.white70,
+                    size: 14, // Reducido
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileDropdown(double screenWidth, double screenHeight) {
+    return Positioned(
+      top: 90, // Ajusta según la altura de tu top navigation
+      right: screenWidth * 0.03, // Ajustado para coincidir con el margen
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: screenWidth < 400 ? 8 : 12
-        ),
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeOutBack,
+        width: screenWidth * 0.75,
         decoration: BoxDecoration(
-          color: isSelected
-              ? Colors.white.withOpacity(0.2)
-              : Colors.transparent,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white.withOpacity(0.95),
+              Colors.white.withOpacity(0.85),
+            ],
+          ),
           borderRadius: BorderRadius.circular(20),
-          border: isSelected
-              ? Border.all(color: Colors.white.withOpacity(0.3), width: 1)
-              : null,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.3),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              offset: Offset(0, 8),
+              spreadRadius: 2,
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 40,
+              offset: Offset(0, 16),
+              spreadRadius: 4,
+            ),
+          ],
         ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontSize: screenWidth < 400 ? 12 : 14,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            letterSpacing: 0.5,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header del dropdown
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF1976D2).withOpacity(0.1),
+                    Color(0xFF3949AB).withOpacity(0.05),
+                  ],
+                ),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 45,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1976D2), Color(0xFF3949AB)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF1976D2).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mi Perfil',
+                          style: TextStyle(
+                            color: Color(0xFF1A237E),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          'Gestiona tu cuenta',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Menu items
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  _buildDropdownItem(
+                    icon: Icons.login_outlined,
+                    title: 'Iniciar Sesión',
+                    subtitle: 'Accede a tu cuenta',
+                    onTap: () => controller.onLoginTap(),
+                    color: Color(0xFF2E7D32),
+                  ),
+                  _buildDropdownItem(
+                    icon: Icons.account_circle_outlined,
+                    title: 'Mi Cuenta',
+                    subtitle: 'Información personal',
+                    onTap: () => controller.onMyAccountTap(),
+                    color: Color(0xFF1976D2),
+                  ),
+                  _buildDropdownItem(
+                    icon: Icons.bookmark_border_outlined,
+                    title: 'Mis Reservas',
+                    subtitle: 'Historial de reservas',
+                    onTap: () => controller.onMyReservationsTap(),
+                    color: Color(0xFFFF9100),
+                  ),
+                  _buildDropdownItem(
+                    icon: Icons.shopping_cart_outlined,
+                    title: 'Mi Carrito',
+                    subtitle: 'Productos guardados',
+                    onTap: () => controller.onMyCartTap(),
+                    color: Color(0xFFE91E63),
+                  ),
+                  _buildDropdownItem(
+                    icon: Icons.settings_outlined,
+                    title: 'Configuración',
+                    subtitle: 'Preferencias de la app',
+                    onTap: () => controller.onSettingsTap(),
+                    color: Color(0xFF424242),
+                  ),
+
+                  // Divider
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          Colors.grey.withOpacity(0.3),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  _buildDropdownItem(
+                    icon: Icons.logout_outlined,
+                    title: 'Cerrar Sesión',
+                    subtitle: 'Salir de la aplicación',
+                    onTap: () => controller.onLogoutTap(),
+                    color: Color(0xFFD32F2F),
+                    isLogout: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdownItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required Color color,
+    bool isLogout = false,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: isLogout ? Color(0xFFD32F2F) : Color(0xFF1A237E),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: Colors.grey[400],
+                size: 14,
+              ),
+            ],
           ),
         ),
       ),
