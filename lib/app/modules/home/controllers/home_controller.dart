@@ -240,16 +240,7 @@ class HomeController extends GetxController {
   }
 
   void onToursTap() {
-    print('Tours presionado');
-    Get.snackbar(
-      'Tours',
-      'Descubre nuestros tours únicos...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFF2E7D32).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-    );
+    Get.toNamed(AppRoutes.SERVICES_CAPACHICA);
   }
 
   // Métodos para manejar navegación inferior

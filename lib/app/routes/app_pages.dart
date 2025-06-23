@@ -9,6 +9,8 @@ import '../modules/login/views/login_screen.dart';
 import '../modules/login/views/google_signin_webview.dart';
 import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_screen.dart';
+import '../modules/services_capachica/bindings/services_capachica_binding.dart';
+import '../modules/services_capachica/views/services_capachica_screen.dart';
 import 'app_routes.dart';
 
 class FadeScaleTransition extends CustomTransition {
@@ -68,6 +70,11 @@ class AppPages {
       name: AppRoutes.GOOGLE_SIGNIN_WEBVIEW,
       page: () => GoogleSignInWebView(),
     ),
+    GetPage(
+      name: AppRoutes.SERVICES_CAPACHICA,
+      page: () => ServicesCapachicaScreen(),
+      binding: ServicesCapachicaBinding(),
+    ),
   ];
 }
 
@@ -77,6 +84,7 @@ abstract class Routes {
   static const LOGIN = _Paths.LOGIN;
   static const REGISTER = _Paths.REGISTER;
   static const GOOGLE_SIGNIN_WEBVIEW = _Paths.GOOGLE_SIGNIN_WEBVIEW;
+  static const SERVICES_CAPACHICA = _Paths.SERVICES_CAPACHICA;
 }
 
 abstract class _Paths {
@@ -85,4 +93,5 @@ abstract class _Paths {
   static const LOGIN = '/login';
   static const REGISTER = '/register';
   static const GOOGLE_SIGNIN_WEBVIEW = '/google-signin-webview';
+  static const SERVICES_CAPACHICA = '/services-capachica';
 }
