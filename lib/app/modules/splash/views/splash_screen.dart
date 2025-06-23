@@ -15,6 +15,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late AnimationController _progressAnimationController;
   late AnimationController _heartbeatController;
   late AnimationController _fastSpinController;
+  late AnimationController _exitAnimationController;
 
   late Animation<double> _logoScaleAnimation;
   late Animation<double> _logoPulseAnimation;
@@ -25,9 +26,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   late Animation<double> _logoRotateAnimation;
   late Animation<double> _heartbeatAnimation;
   late Animation<double> _fastSpinAnimation;
+  late Animation<double> _exitFadeAnimation;
 
   late SplashController controller;
   bool _showIntenseAnimation = false;
+  bool _isExiting = false;
 
   @override
   void initState() {
@@ -47,6 +50,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         _startIntenseAnimations();
       }
     });
+
+    // Inicia la animación de salida 800ms antes de la navegación (a los 2.2 segundos)
+    // Esto asegura que el fade out del splash coincida con el fade in del home
+    Future.delayed(Duration(milliseconds: 2200), () {
+      if (mounted) {
+        setState(() {
+          _isExiting = true;
+        });
+        _exitAnimationController.forward();
+      }
+    });
   }
 
   void _startIntenseAnimations() {
@@ -63,181 +77,189 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFFF6600), // Naranja vivo de fondo
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFF6600), // Naranja vivo
-              Color(0xFFFF7700), // Naranja vivo ligeramente más claro
-              Color(0xFFFF8800), // Naranja vivo más claro
-            ],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo con animaciones múltiples
-              AnimatedBuilder(
-                animation: Listenable.merge([
-                  _logoAnimationController,
-                  _fadeAnimationController,
-                  _heartbeatController,
-                  _fastSpinController,
-                ]),
-                builder: (context, child) {
-                  double heartbeatScale = _showIntenseAnimation ? _heartbeatAnimation.value : 1.0;
-                  double rotationAngle = _showIntenseAnimation ? _fastSpinAnimation.value : _logoRotateAnimation.value;
-
-                  return Transform.scale(
-                    scale: _logoScaleAnimation.value * _logoPulseAnimation.value * heartbeatScale,
-                    child: Transform.rotate(
-                      angle: rotationAngle,
-                      child: Opacity(
-                        opacity: _fadeAnimation.value,
-                        child: Container(
-                          width: 150,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.asset(
-                              'assets/logo.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
+    return AnimatedBuilder(
+      animation: _exitAnimationController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _isExiting ? _exitFadeAnimation.value : 1.0,
+          child: Scaffold(
+            backgroundColor: Color(0xFFFF6600), // Naranja vivo de fondo
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFFF6600), // Naranja vivo
+                    Color(0xFFFF7700), // Naranja vivo ligeramente más claro
+                    Color(0xFFFF8800), // Naranja vivo más claro
+                  ],
+                ),
               ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo con animaciones múltiples
+                    AnimatedBuilder(
+                      animation: Listenable.merge([
+                        _logoAnimationController,
+                        _fadeAnimationController,
+                        _heartbeatController,
+                        _fastSpinController,
+                      ]),
+                      builder: (context, child) {
+                        double heartbeatScale = _showIntenseAnimation ? _heartbeatAnimation.value : 1.0;
+                        double rotationAngle = _showIntenseAnimation ? _fastSpinAnimation.value : _logoRotateAnimation.value;
 
-              SizedBox(height: 50),
-
-              // Indicador de carga con animación
-              AnimatedBuilder(
-                animation: _progressAnimationController,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _progressFadeAnimation.value,
-                    child: Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Center(
-                        child: SizedBox(
-                          width: 30,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white.withOpacity(_progressFadeAnimation.value),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-
-              SizedBox(height: 40),
-
-              // Textos con animación de deslizamiento
-              AnimatedBuilder(
-                animation: _textAnimationController,
-                builder: (context, child) {
-                  return Column(
-                    children: [
-                      // Texto principal
-                      Transform.translate(
-                        offset: _textSlideAnimation.value,
-                        child: Opacity(
-                          opacity: _textFadeAnimation.value,
-                          child: Text(
-                            'Bienvenido a Capachica',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black.withOpacity(0.3 * _textFadeAnimation.value),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 2),
+                        return Transform.scale(
+                          scale: _logoScaleAnimation.value * _logoPulseAnimation.value * heartbeatScale,
+                          child: Transform.rotate(
+                            angle: rotationAngle,
+                            child: Opacity(
+                              opacity: _fadeAnimation.value,
+                              child: Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                              ],
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    'assets/logo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 15),
-
-                      // Texto secundario
-                      Transform.translate(
-                        offset: Offset(0, 20 * (1 - _textFadeAnimation.value)),
-                        child: Opacity(
-                          opacity: _textFadeAnimation.value * 0.8,
-                          child: Text(
-                            'Cargando...',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-
-              SizedBox(height: 60),
-
-              // Indicadores de puntos animados
-              AnimatedBuilder(
-                animation: _progressAnimationController,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _progressFadeAnimation.value * 0.6,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(3, (index) {
-                        return AnimatedContainer(
-                          duration: Duration(milliseconds: 300),
-                          margin: EdgeInsets.symmetric(horizontal: 4),
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(
-                                0.3 + (0.7 * (((_progressAnimationController.value * 3) - index).clamp(0.0, 1.0)))
-                            ),
-                            borderRadius: BorderRadius.circular(4),
                           ),
                         );
-                      }),
+                      },
                     ),
-                  );
-                },
+
+                    SizedBox(height: 50),
+
+                    // Indicador de carga con animación
+                    AnimatedBuilder(
+                      animation: _progressAnimationController,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _progressFadeAnimation.value,
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: 30,
+                                height: 30,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white.withOpacity(_progressFadeAnimation.value),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    SizedBox(height: 40),
+
+                    // Textos con animación de deslizamiento
+                    AnimatedBuilder(
+                      animation: _textAnimationController,
+                      builder: (context, child) {
+                        return Column(
+                          children: [
+                            // Texto principal
+                            Transform.translate(
+                              offset: _textSlideAnimation.value,
+                              child: Opacity(
+                                opacity: _textFadeAnimation.value,
+                                child: Text(
+                                  'Bienvenido a Capachica',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.2,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withOpacity(0.3 * _textFadeAnimation.value),
+                                        blurRadius: 10,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(height: 15),
+
+                            // Texto secundario
+                            Transform.translate(
+                              offset: Offset(0, 20 * (1 - _textFadeAnimation.value)),
+                              child: Opacity(
+                                opacity: _textFadeAnimation.value * 0.8,
+                                child: Text(
+                                  'Cargando...',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+
+                    SizedBox(height: 60),
+
+                    // Indicadores de puntos animados
+                    AnimatedBuilder(
+                      animation: _progressAnimationController,
+                      builder: (context, child) {
+                        return Opacity(
+                          opacity: _progressFadeAnimation.value * 0.6,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(3, (index) {
+                              return AnimatedContainer(
+                                duration: Duration(milliseconds: 300),
+                                margin: EdgeInsets.symmetric(horizontal: 4),
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(
+                                      0.3 + (0.7 * (((_progressAnimationController.value * 3) - index).clamp(0.0, 1.0)))
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              );
+                            }),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -329,6 +351,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       ),
     );
 
+    _exitAnimationController = AnimationController(
+      duration: Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _exitFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _exitAnimationController,
+        curve: Curves.easeIn,
+      ),
+    );
+
     _startAnimations();
   }
 
@@ -354,6 +387,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _progressAnimationController.dispose();
     _heartbeatController.dispose();
     _fastSpinController.dispose();
+    _exitAnimationController.dispose();
     super.dispose();
   }
 }

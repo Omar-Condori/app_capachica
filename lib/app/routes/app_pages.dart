@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_screen.dart';
@@ -9,6 +10,31 @@ import '../modules/login/views/google_signin_webview.dart';
 import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_screen.dart';
 import 'app_routes.dart';
+
+class FadeScaleTransition extends CustomTransition {
+  @override
+  Widget buildTransition(
+    BuildContext context,
+    Curve? curve,
+    Alignment? alignment,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: animation,
+      child: ScaleTransition(
+        scale: Tween<double>(begin: 0.98, end: 1.0).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
 
 class AppPages {
   AppPages._();
@@ -25,8 +51,8 @@ class AppPages {
       name: AppRoutes.HOME,
       page: () => HomeScreen(),
       binding: HomeBinding(),
-      transition: Transition.fadeIn,
       transitionDuration: const Duration(milliseconds: 800),
+      customTransition: FadeScaleTransition(),
     ),
     GetPage(
       name: AppRoutes.LOGIN,

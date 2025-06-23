@@ -223,7 +223,13 @@ class RegisterScreen extends GetView<RegisterController> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: Colors.white,
+      cursorWidth: 2.5,
+      cursorRadius: Radius.circular(2),
       decoration: _inputDecoration(label, icon, suffixIcon),
     );
   }
@@ -233,7 +239,13 @@ class RegisterScreen extends GetView<RegisterController> {
       controller: controller.birthDateController,
       readOnly: true,
       onTap: () => controller.pickBirthDate(context),
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: Colors.white,
+      cursorWidth: 2.5,
+      cursorRadius: Radius.circular(2),
       decoration: _inputDecoration('Fecha de Nacimiento (Opcional)', Icons.calendar_today_outlined, null),
     );
   }
@@ -250,11 +262,20 @@ class RegisterScreen extends GetView<RegisterController> {
       items: items.map((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         );
       }).toList(),
       onChanged: onChanged,
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w500,
+      ),
       dropdownColor: Color(0xFF3949AB),
       decoration: _inputDecoration(hint, icon, null).copyWith(
         // Adaptación para que la flecha del dropdown sea blanca

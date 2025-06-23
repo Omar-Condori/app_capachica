@@ -72,7 +72,7 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
       Get.snackbar(
         'Error de Red',
         'No se pudo conectar con el servidor para iniciar sesión con Google.',
-        backgroundColor: Colors.red,
+        backgroundColor: Color(0xFFFF9100),
         colorText: Colors.white,
       );
       Get.back();
@@ -83,16 +83,16 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
     try {
       // Extraer el token de la URL
       Uri uri = Uri.parse(url);
-      String? token = uri.queryParameters['token'] ?? 
-                     uri.queryParameters['access_token'] ??
-                     uri.fragment.split('access_token=').last.split('&').first;
+      String? token = uri.queryParameters['token'] ??
+          uri.queryParameters['access_token'] ??
+          uri.fragment.split('access_token=').last.split('&').first;
 
       if (token != null) {
         print('[GoogleSignInWebView] Token obtenido: $token');
-        
+
         // Enviar el token al backend
         final response = await _authProvider.verifyGoogleToken(token);
-        
+
         if (response.status.hasError) {
           throw 'Error en la autenticación: ${response.statusText}';
         }
@@ -107,7 +107,7 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
 
         Get.rawSnackbar(
           message: 'Inicio de sesión con Google exitoso',
-          backgroundColor: Colors.green,
+          backgroundColor: Color(0xFFFF9100),
           borderRadius: 12,
           margin: EdgeInsets.all(16),
         );
@@ -120,7 +120,7 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
       Get.snackbar(
         'Error',
         'No se pudo completar la autenticación: $e',
-        backgroundColor: Colors.red,
+        backgroundColor: Color(0xFFFF9100),
         colorText: Colors.white,
       );
       Get.back();
@@ -132,7 +132,7 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Iniciar sesión con Google'),
-        backgroundColor: Color(0xFF1A237E),
+        backgroundColor: Color(0xFFFF9100),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -165,4 +165,4 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
       ),
     );
   }
-} 
+}
