@@ -613,24 +613,10 @@ class HomeScreen extends GetView<HomeController> {
                 screenWidth
             ),
             _buildBottomNavItem(
-                Icons.miscellaneous_services_outlined,
-                Icons.miscellaneous_services,
-                'Servicios',
-                controller.selectedBottomNav.value == 'Servicios',
-                screenWidth
-            ),
-            _buildBottomNavItem(
                 Icons.event_outlined,
                 Icons.event,
                 'Eventos',
                 controller.selectedBottomNav.value == 'Eventos',
-                screenWidth
-            ),
-            _buildBottomNavItem(
-                Icons.assignment_outlined,
-                Icons.assignment,
-                'Planes',
-                controller.selectedBottomNav.value == 'Planes',
                 screenWidth
             ),
           ],
