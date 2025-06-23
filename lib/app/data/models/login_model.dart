@@ -10,6 +10,48 @@ class LoginRequest {
   };
 }
 
+class RegisterRequest {
+  final String name;
+  final String email;
+  final String password;
+  final String passwordConfirmation;
+  final String? phone;
+  final String? country;
+  final String? birthDate;
+  final String? address;
+  final String? gender;
+  final String? preferredLanguage;
+
+  RegisterRequest({
+    required this.name,
+    required this.email,
+    required this.password,
+    required this.passwordConfirmation,
+    this.phone,
+    this.country,
+    this.birthDate,
+    this.address,
+    this.gender,
+    this.preferredLanguage,
+  });
+
+  Map<String, String> toMap() {
+    final map = <String, String>{
+      'name': name,
+      'email': email,
+      'password': password,
+      'password_confirmation': passwordConfirmation,
+    };
+    if (phone != null) map['phone'] = phone!;
+    if (country != null) map['country'] = country!;
+    if (birthDate != null) map['birth_date'] = birthDate!;
+    if (address != null) map['address'] = address!;
+    if (gender != null) map['gender'] = gender!;
+    if (preferredLanguage != null) map['preferred_language'] = preferredLanguage!;
+    return map;
+  }
+}
+
 class LoginResponse {
   final String? token;
   final String? message;
@@ -32,10 +74,10 @@ class LoginResponse {
 
 class User {
   final int id;
-  final String name;
+  final String? name;
   final String email;
 
-  User({required this.id, required this.name, required this.email});
+  User({required this.id, this.name, required this.email});
 
   factory User.fromJson(Map<String, dynamic> json) => User(
     id: json['id'],

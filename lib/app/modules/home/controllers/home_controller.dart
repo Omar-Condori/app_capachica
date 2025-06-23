@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_routes.dart';
+import '../../../services/auth_service.dart';
 
 class HomeController extends GetxController {
+  final AuthService authService = Get.find<AuthService>();
+
+  String get userDisplayName {
+    if (!authService.isLoggedIn) return 'Mi Perfil';
+
+    // Usar el nombre si existe, si no, usar el email.
+    final name = authService.currentUser.value?.name;
+    final email = authService.currentUser.value?.email ?? 'Perfil';
+
+    // Si el nombre no es nulo y no está vacío, úsalo.
+    if (name != null && name.isNotEmpty) {
+      return name.length > 8 ? name.substring(0, 8) : name;
+    }
+    
+    // Si no hay nombre, usa el email.
+    return email.length > 8 ? email.substring(0, 8) : email;
+  }
+
   // Variables observables
   final selectedTopNav = 'Resumen'.obs;
   final selectedBottomNav = 'Inicio'.obs;
@@ -192,8 +211,8 @@ class HomeController extends GetxController {
     );
   }
 
-  void _performLogout() {
-    // Lógica para cerrar sesión
+  void _performLogout() async {
+    await authService.logout();
     Get.snackbar(
       'Sesión Cerrada',
       'Has cerrado sesión exitosamente',
@@ -204,9 +223,6 @@ class HomeController extends GetxController {
       margin: EdgeInsets.all(16),
       icon: Icon(Icons.check_circle, color: Colors.white),
     );
-
-    // Aquí podrías limpiar datos de usuario, tokens, etc.
-    // Get.offAllNamed('/login'); // Redirigir al login
   }
 
   // Métodos para manejar botones de acción

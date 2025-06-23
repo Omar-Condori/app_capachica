@@ -15,10 +15,43 @@ class AuthProvider extends GetConnect {
   }
 
   Future<Response<LoginResponse>> login(LoginRequest loginRequest) async {
-    return await post<LoginResponse>(
+    print('[AuthProvider] Iniciando petición POST a /login');
+    final response = await post<LoginResponse>(
       '/login',
       loginRequest.toJson(),
-      decoder: (data) => LoginResponse.fromJson(data),
+      decoder: (data) {
+        print('[AuthProvider] Decodificando respuesta del login: $data');
+        return LoginResponse.fromJson(data);
+      },
     );
+    print('[AuthProvider] Respuesta recibida del servidor con Status: ${response.statusCode}');
+    print('[AuthProvider] Cuerpo de la respuesta: ${response.bodyString}');
+    return response;
+  }
+
+  Future<Response> register(FormData formData) async {
+    return await post(
+      '/register',
+      formData,
+    );
+  }
+
+  Future<Response> getGoogleSignInUrl() async {
+    print('[AuthProvider] Obteniendo URL de autenticación de Google...');
+    return await get('/auth/google');
+  }
+
+  Future<Response<LoginResponse>> verifyGoogleToken(String token) async {
+    print('[AuthProvider] Iniciando petición GET a /auth/google con token');
+    final response = await get<LoginResponse>(
+      '/auth/google?token=$token',
+      decoder: (data) {
+        print('[AuthProvider] Decodificando respuesta de Google auth: $data');
+        return LoginResponse.fromJson(data);
+      },
+    );
+    print('[AuthProvider] Respuesta recibida del servidor con Status: ${response.statusCode}');
+    print('[AuthProvider] Cuerpo de la respuesta: ${response.bodyString}');
+    return response;
   }
 }

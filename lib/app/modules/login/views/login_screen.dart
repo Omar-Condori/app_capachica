@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../controllers/login_controller.dart';
+import '../../../routes/app_routes.dart';
 
 class LoginScreen extends GetView<LoginController> {
   @override
@@ -46,122 +48,143 @@ class LoginScreen extends GetView<LoginController> {
 
           SafeArea(
             child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-              child: Form(
-                key: controller.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: screenHeight * 0.08),
-
-                    // Back button
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: screenHeight * 0.9),
+                child: Form(
+                  key: controller.formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Back button (se muestra solo si se puede volver)
+                      if (Get.previousRoute.isNotEmpty) ...[
+                        GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.arrow_back_ios_new,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
                         ),
-                        child: Icon(
-                          Icons.arrow_back_ios,
+                        SizedBox(height: screenHeight * 0.05),
+                      ] else ...[
+                        SizedBox(height: screenHeight * 0.08),
+                      ],
+
+                      // Title
+                      Text(
+                        'Iniciar\nSesión',
+                        style: TextStyle(
                           color: Colors.white,
-                          size: 20,
+                          fontSize: 42,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
                         ),
                       ),
-                    ),
 
-                    SizedBox(height: screenHeight * 0.05),
-
-                    // Title
-                    Text(
-                      'Iniciar\nSesión',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 42,
-                        fontWeight: FontWeight.w800,
-                        height: 1.1,
-                      ),
-                    ),
-
-                    SizedBox(height: 8),
-                    Text(
-                      'Accede a tu cuenta',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-
-                    SizedBox(height: screenHeight * 0.08),
-
-                    // Email field
-                    _buildInputField(
-                      controller: controller.emailController,
-                      label: 'Correo electrónico',
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Ingresa tu email';
-                        if (!GetUtils.isEmail(value!)) return 'Email inválido';
-                        return null;
-                      },
-                    ),
-
-                    SizedBox(height: 24),
-
-                    // Password field
-                    Obx(() => _buildInputField(
-                      controller: controller.passwordController,
-                      label: 'Contraseña',
-                      icon: Icons.lock_outline,
-                      obscureText: !controller.isPasswordVisible.value,
-                      suffixIcon: GestureDetector(
-                        onTap: controller.togglePasswordVisibility,
-                        child: Icon(
-                          controller.isPasswordVisible.value
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
+                      SizedBox(height: 8),
+                      Text(
+                        'Accede a tu cuenta',
+                        style: TextStyle(
                           color: Colors.white70,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Ingresa tu contraseña';
-                        if (value!.length < 6) return 'Mínimo 6 caracteres';
-                        return null;
-                      },
-                    )),
 
-                    SizedBox(height: screenHeight * 0.06),
+                      SizedBox(height: screenHeight * 0.08),
 
-                    // Login button
-                    Obx(() => _buildLoginButton(screenWidth)),
+                      // Email field
+                      _buildInputField(
+                        controller: controller.emailController,
+                        label: 'Correo electrónico',
+                        icon: Icons.email_outlined,
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Ingresa tu email';
+                          if (!GetUtils.isEmail(value!)) return 'Email inválido';
+                          return null;
+                        },
+                      ),
 
-                    SizedBox(height: 24),
+                      SizedBox(height: 24),
 
-                    // Register link
-                    Center(
-                      child: GestureDetector(
-                        onTap: () => Get.toNamed('/register'),
-                        child: RichText(
-                          text: TextSpan(
-                            style: TextStyle(color: Colors.white70, fontSize: 14),
-                            children: [
-                              TextSpan(text: '¿No tienes cuenta? '),
-                              TextSpan(
-                                text: 'Regístrate',
-                                style: TextStyle(
-                                  color: Color(0xFFFF9100),
-                                  fontWeight: FontWeight.w600,
+                      // Password field
+                      Obx(() => _buildInputField(
+                        controller: controller.passwordController,
+                        label: 'Contraseña',
+                        icon: Icons.lock_outline,
+                        obscureText: !controller.isPasswordVisible.value,
+                        suffixIcon: GestureDetector(
+                          onTap: controller.togglePasswordVisibility,
+                          child: Icon(
+                            controller.isPasswordVisible.value
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value?.isEmpty ?? true) return 'Ingresa tu contraseña';
+                          if (value!.length < 6) return 'Mínimo 6 caracteres';
+                          return null;
+                        },
+                      )),
+
+                      SizedBox(height: screenHeight * 0.06),
+
+                      // Login button
+                      Obx(() => _buildLoginButton(screenWidth)),
+
+                      SizedBox(height: 16),
+
+                      // Forgot Password link
+                      _buildForgotPasswordButton(),
+
+                      SizedBox(height: 16),
+
+                      // Divider
+                      _buildDivider(),
+
+                      SizedBox(height: 24),
+
+                      // Google Sign-In Button
+                      _buildGoogleSignInButton(),
+
+                      SizedBox(height: 24),
+
+                      // Register link
+                      Center(
+                        child: GestureDetector(
+                          onTap: () => Get.toNamed(AppRoutes.REGISTER),
+                          child: RichText(
+                            text: TextSpan(
+                              style: TextStyle(color: Colors.white70, fontSize: 14),
+                              children: [
+                                TextSpan(text: '¿No tienes cuenta? '),
+                                TextSpan(
+                                  text: 'Regístrate',
+                                  style: TextStyle(
+                                    color: Color(0xFFFF9100),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -241,6 +264,67 @@ class LoginScreen extends GetView<LoginController> {
             color: Colors.white,
             fontSize: 16,
             fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.white.withOpacity(0.3))),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('O', style: TextStyle(color: Colors.white70)),
+        ),
+        Expanded(child: Divider(color: Colors.white.withOpacity(0.3))),
+      ],
+    );
+  }
+
+  Widget _buildGoogleSignInButton() {
+    return ElevatedButton.icon(
+      onPressed: controller.signInWithGoogle,
+      icon: Image.asset(
+        'assets/google_logo.png',
+        height: 22.0,
+        width: 22.0,
+      ),
+      label: Text('Continuar con Google'),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.black, backgroundColor: Colors.white,
+        minimumSize: Size(double.infinity, 54),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+        textStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForgotPasswordButton() {
+    return Align(
+      alignment: Alignment.center,
+      child: GestureDetector(
+        onTap: () {
+          Get.snackbar(
+            'Próximamente',
+            'La recuperación de contraseña aún no está disponible.',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.blueGrey,
+            colorText: Colors.white,
+          );
+        },
+        child: Text(
+          '¿Olvidaste tu contraseña?',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),

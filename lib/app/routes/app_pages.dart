@@ -5,6 +5,9 @@ import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_screen.dart';
 import '../modules/login/bindings/login_binding.dart';
 import '../modules/login/views/login_screen.dart';
+import '../modules/login/views/google_signin_webview.dart';
+import '../modules/register/bindings/register_binding.dart';
+import '../modules/register/views/register_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -30,6 +33,15 @@ class AppPages {
       page: () => LoginScreen(),
       binding: LoginBinding(),
     ),
+    GetPage(
+      name: AppRoutes.REGISTER,
+      page: () => RegisterScreen(),
+      binding: RegisterBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.GOOGLE_SIGNIN_WEBVIEW,
+      page: () => GoogleSignInWebView(),
+    ),
   ];
 }
 
@@ -37,10 +49,14 @@ abstract class Routes {
   static const SPLASH = _Paths.SPLASH;
   static const HOME = _Paths.HOME;
   static const LOGIN = _Paths.LOGIN;
+  static const REGISTER = _Paths.REGISTER;
+  static const GOOGLE_SIGNIN_WEBVIEW = _Paths.GOOGLE_SIGNIN_WEBVIEW;
 }
 
 abstract class _Paths {
   static const SPLASH = '/splash';
   static const HOME = '/home';
   static const LOGIN = '/login';
+  static const REGISTER = '/register';
+  static const GOOGLE_SIGNIN_WEBVIEW = '/google-signin-webview';
 }

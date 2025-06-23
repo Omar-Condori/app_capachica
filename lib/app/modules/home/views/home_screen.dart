@@ -122,7 +122,12 @@ class HomeScreen extends GetView<HomeController> {
               _buildTopNavItem('Resumen', controller.selectedTopNav.value == 'Resumen', screenWidth),
               _buildTopNavItem('Negocios', controller.selectedTopNav.value == 'Negocios', screenWidth),
               _buildTopNavItem('Servicios', controller.selectedTopNav.value == 'Servicios', screenWidth),
-              _buildTopNavItem('Mi Perfil', controller.selectedTopNav.value == 'Mi Perfil', screenWidth),
+              _buildTopNavItem(
+                controller.userDisplayName,
+                controller.selectedTopNav.value == 'Mi Perfil',
+                screenWidth,
+                isProfile: true,
+              ),
             ],
           ),
         ),
@@ -130,14 +135,14 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget _buildTopNavItem(String title, bool isSelected, double screenWidth) {
+  Widget _buildTopNavItem(String title, bool isSelected, double screenWidth, {bool isProfile = false}) {
     // Calculamos el tamaño de fuente dinámicamente
     double fontSize = screenWidth < 350 ? 10 : (screenWidth < 400 ? 11 : 12);
     double horizontalPadding = screenWidth < 350 ? 4 : (screenWidth < 400 ? 6 : 8);
 
     return Flexible( // Cambiado a Flexible para evitar overflow
       child: GestureDetector(
-        onTap: () => controller.onTopNavTap(title),
+        onTap: () => controller.onTopNavTap(isProfile ? 'Mi Perfil' : title),
         child: AnimatedContainer(
           duration: Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(
@@ -169,7 +174,7 @@ class HomeScreen extends GetView<HomeController> {
                   overflow: TextOverflow.ellipsis, // Previene overflow
                 ),
               ),
-              if (title == 'Mi Perfil') ...[
+              if (isProfile) ...[
                 SizedBox(width: 2), // Reducido
                 AnimatedRotation(
                   turns: controller.showProfileDropdown.value ? 0.5 : 0,
@@ -298,68 +303,70 @@ class HomeScreen extends GetView<HomeController> {
             // Menu items
             Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                children: [
-                  _buildDropdownItem(
-                    icon: Icons.login_outlined,
-                    title: 'Iniciar Sesión',
-                    subtitle: 'Accede a tu cuenta',
-                    onTap: () => controller.onLoginTap(),
-                    color: Color(0xFF2E7D32),
-                  ),
-                  _buildDropdownItem(
-                    icon: Icons.account_circle_outlined,
-                    title: 'Mi Cuenta',
-                    subtitle: 'Información personal',
-                    onTap: () => controller.onMyAccountTap(),
-                    color: Color(0xFF1976D2),
-                  ),
-                  _buildDropdownItem(
-                    icon: Icons.bookmark_border_outlined,
-                    title: 'Mis Reservas',
-                    subtitle: 'Historial de reservas',
-                    onTap: () => controller.onMyReservationsTap(),
-                    color: Color(0xFFFF9100),
-                  ),
-                  _buildDropdownItem(
-                    icon: Icons.shopping_cart_outlined,
-                    title: 'Mi Carrito',
-                    subtitle: 'Productos guardados',
-                    onTap: () => controller.onMyCartTap(),
-                    color: Color(0xFFE91E63),
-                  ),
-                  _buildDropdownItem(
-                    icon: Icons.settings_outlined,
-                    title: 'Configuración',
-                    subtitle: 'Preferencias de la app',
-                    onTap: () => controller.onSettingsTap(),
-                    color: Color(0xFF424242),
-                  ),
-
-                  // Divider
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    height: 1,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.grey.withOpacity(0.3),
-                          Colors.transparent,
+              child: Obx(
+                () => Column(
+                  children: controller.authService.isLoggedIn
+                      ? [
+                          _buildDropdownItem(
+                            icon: Icons.account_circle_outlined,
+                            title: 'Mi Cuenta',
+                            subtitle: 'Información personal',
+                            onTap: () => controller.onMyAccountTap(),
+                            color: Color(0xFF1976D2),
+                          ),
+                          _buildDropdownItem(
+                            icon: Icons.bookmark_border_outlined,
+                            title: 'Mis Reservas',
+                            subtitle: 'Historial de reservas',
+                            onTap: () => controller.onMyReservationsTap(),
+                            color: Color(0xFFFF9100),
+                          ),
+                          _buildDropdownItem(
+                            icon: Icons.shopping_cart_outlined,
+                            title: 'Mi Carrito',
+                            subtitle: 'Productos guardados',
+                            onTap: () => controller.onMyCartTap(),
+                            color: Color(0xFFE91E63),
+                          ),
+                          _buildDropdownItem(
+                            icon: Icons.settings_outlined,
+                            title: 'Configuración',
+                            subtitle: 'Preferencias de la app',
+                            onTap: () => controller.onSettingsTap(),
+                            color: Color(0xFF424242),
+                          ),
+                          Container(
+                            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            height: 1,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.grey.withOpacity(0.3),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                          _buildDropdownItem(
+                            icon: Icons.logout_outlined,
+                            title: 'Cerrar Sesión',
+                            subtitle: 'Salir de la aplicación',
+                            onTap: () => controller.onLogoutTap(),
+                            color: Color(0xFFD32F2F),
+                            isLogout: true,
+                          ),
+                        ]
+                      : [
+                          _buildDropdownItem(
+                            icon: Icons.login_outlined,
+                            title: 'Iniciar Sesión',
+                            subtitle: 'Accede a tu cuenta',
+                            onTap: () => controller.onLoginTap(),
+                            color: Color(0xFF2E7D32),
+                          ),
                         ],
-                      ),
-                    ),
-                  ),
-
-                  _buildDropdownItem(
-                    icon: Icons.logout_outlined,
-                    title: 'Cerrar Sesión',
-                    subtitle: 'Salir de la aplicación',
-                    onTap: () => controller.onLogoutTap(),
-                    color: Color(0xFFD32F2F),
-                    isLogout: true,
-                  ),
-                ],
+                ),
               ),
             ),
           ],

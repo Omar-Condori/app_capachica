@@ -1,0 +1,120 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import '../../../data/repositories/auth_repository.dart';
+import '../../../data/models/login_model.dart';
+import '../../../routes/app_routes.dart';
+
+class RegisterController extends GetxController {
+  final AuthRepository _authRepository = Get.find<AuthRepository>();
+  final ImagePicker _picker = ImagePicker();
+
+  final formKey = GlobalKey<FormState>();
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final passwordConfirmationController = TextEditingController();
+  final phoneController = TextEditingController();
+  final countryController = TextEditingController();
+  final birthDateController = TextEditingController();
+  final addressController = TextEditingController();
+
+  final isLoading = false.obs;
+  final isPasswordVisible = false.obs;
+  final isPasswordConfirmVisible = false.obs;
+  final gender = Rxn<String>();
+  final preferredLanguage = Rxn<String>();
+  final profileImage = Rxn<File>();
+  final birthDate = Rxn<DateTime>();
+
+  void togglePasswordVisibility() => isPasswordVisible.value = !isPasswordVisible.value;
+  void togglePasswordConfirmVisibility() => isPasswordConfirmVisible.value = !isPasswordConfirmVisible.value;
+
+  Future<void> pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      profileImage.value = File(image.path);
+    }
+  }
+
+  Future<void> pickBirthDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: birthDate.value ?? DateTime.now().subtract(Duration(days: 365 * 18)),
+      firstDate: DateTime(1920),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != birthDate.value) {
+      birthDate.value = picked;
+      birthDateController.text = DateFormat('yyyy-MM-dd').format(picked);
+    }
+  }
+
+  Future<void> register() async {
+    if (!formKey.currentState!.validate()) {
+      Get.snackbar('Error de Validación', 'Por favor, corrige los campos marcados en rojo.');
+      return;
+    }
+
+    isLoading.value = true;
+    try {
+      final request = RegisterRequest(
+        name: nameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+        passwordConfirmation: passwordConfirmationController.text,
+        phone: phoneController.text,
+        country: countryController.text,
+        birthDate: birthDateController.text,
+        address: addressController.text,
+        gender: gender.value,
+        preferredLanguage: preferredLanguage.value,
+      );
+      
+      final formData = FormData(request.toMap());
+      if (profileImage.value != null) {
+        formData.files.add(MapEntry(
+            'foto_perfil',
+            MultipartFile(profileImage.value!, filename: 'profile_pic_${DateTime.now().millisecondsSinceEpoch}.jpg')
+        ));
+      }
+
+      await _authRepository.register(formData);
+
+      Get.snackbar(
+        '¡Registro Exitoso!',
+        'Hemos enviado un enlace de verificación a tu correo. ¡Revisa tu bandeja de entrada!',
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 5),
+      );
+
+      Get.offNamed(AppRoutes.LOGIN);
+
+    } catch (e) {
+      Get.snackbar(
+        'Error de Registro',
+        e.toString(),
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  @override
+  void onClose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    passwordConfirmationController.dispose();
+    phoneController.dispose();
+    countryController.dispose();
+    birthDateController.dispose();
+    addressController.dispose();
+    super.onClose();
+  }
+} 
