@@ -51,9 +51,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       }
     });
 
-    // Inicia la animación de salida 800ms antes de la navegación (a los 2.2 segundos)
-    // Esto asegura que el fade out del splash coincida con el fade in del home
-    Future.delayed(Duration(milliseconds: 2200), () {
+    // Inicia la animación de salida 600ms antes de la navegación (a los 2.4 segundos)
+    // Esto crea una transición más suave sin espacios oscuros
+    Future.delayed(Duration(milliseconds: 2400), () {
       if (mounted) {
         setState(() {
           _isExiting = true;
@@ -352,13 +352,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     );
 
     _exitAnimationController = AnimationController(
-      duration: Duration(milliseconds: 800),
+      duration: Duration(milliseconds: 600),
       vsync: this,
     );
     _exitFadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _exitAnimationController,
-        curve: Curves.easeIn,
+        curve: Curves.easeInOut,
       ),
     );
 

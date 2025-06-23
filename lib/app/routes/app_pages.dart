@@ -22,12 +22,15 @@ class FadeScaleTransition extends CustomTransition {
     Widget child,
   ) {
     return FadeTransition(
-      opacity: animation,
+      opacity: CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeInOut,
+      ),
       child: ScaleTransition(
-        scale: Tween<double>(begin: 0.98, end: 1.0).animate(
+        scale: Tween<double>(begin: 0.95, end: 1.0).animate(
           CurvedAnimation(
             parent: animation,
-            curve: Curves.easeOut,
+            curve: Curves.easeOutCubic,
           ),
         ),
         child: child,
@@ -51,7 +54,7 @@ class AppPages {
       name: AppRoutes.HOME,
       page: () => HomeScreen(),
       binding: HomeBinding(),
-      transitionDuration: const Duration(milliseconds: 800),
+      transitionDuration: const Duration(milliseconds: 600),
       customTransition: FadeScaleTransition(),
     ),
     GetPage(
