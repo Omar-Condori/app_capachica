@@ -6,4 +6,5 @@ abstract class AppRoutes {
   static const LOGIN = '/login';
   static const REGISTER = '/register';
   static const GOOGLE_SIGNIN_WEBVIEW = '/google-signin-webview';
+  static const SERVICES_CAPACHICA = '/services-capachica';
 }
