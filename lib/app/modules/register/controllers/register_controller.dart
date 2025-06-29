@@ -29,6 +29,12 @@ class RegisterController extends GetxController {
   final profileImage = Rxn<File>();
   final birthDate = Rxn<DateTime>();
 
+  static const Map<String, String> genderOptions = {
+    'Masculino': 'male',
+    'Femenino': 'female',
+    'Otro': 'other',
+  };
+
   void togglePasswordVisibility() => isPasswordVisible.value = !isPasswordVisible.value;
   void togglePasswordConfirmVisibility() => isPasswordConfirmVisible.value = !isPasswordConfirmVisible.value;
 
@@ -69,7 +75,7 @@ class RegisterController extends GetxController {
         country: countryController.text,
         birthDate: birthDateController.text,
         address: addressController.text,
-        gender: gender.value,
+        gender: genderOptions[gender.value],
         preferredLanguage: preferredLanguage.value,
       );
 

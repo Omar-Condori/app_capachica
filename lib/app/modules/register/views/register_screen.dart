@@ -45,128 +45,152 @@ class RegisterScreen extends GetView<RegisterController> {
           SafeArea(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
-              child: Form(
-                key: controller.formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 30),
-
-                    // Selector de Imagen de Perfil
-                    _buildProfileImageSelector(),
-                    SizedBox(height: 30),
-
-                    // Título
-                    Text(
-                      'Crear Cuenta',
-                      style: TextStyle(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Flecha de retroceso
+                  GestureDetector(
+                    onTap: () => Get.back(),
+                    child: Container(
+                      margin: EdgeInsets.only(top: 8),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
                         color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w800,
+                        size: 20,
                       ),
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Completa tus datos para unirte',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                      ),
-                    ),
-                    SizedBox(height: 30),
+                  ),
+                  SizedBox(height: 16),
 
-                    // --- Campos del Formulario ---
-                    _buildInputField(
-                      controller: controller.nameController,
-                      label: 'Nombre completo',
-                      icon: Icons.person_outline,
-                      validator: (value) => (value?.isEmpty ?? true) ? 'Ingresa tu nombre' : null,
-                    ),
-                    SizedBox(height: 20),
-                    _buildInputField(
-                      controller: controller.emailController,
-                      label: 'Correo electrónico',
-                      icon: Icons.email_outlined,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Ingresa tu email';
-                        if (!GetUtils.isEmail(value!)) return 'Email inválido';
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
-                     _buildInputField(
-                      controller: controller.phoneController,
-                      label: 'Teléfono (Opcional)',
-                      icon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    SizedBox(height: 20),
-                    Obx(() => _buildInputField(
-                          controller: controller.passwordController,
-                          label: 'Contraseña',
-                          icon: Icons.lock_outline,
-                          obscureText: !controller.isPasswordVisible.value,
-                          suffixIcon: _buildPasswordToggle(controller.isPasswordVisible),
-                          validator: (value) => (value?.length ?? 0) < 8 ? 'Mínimo 8 caracteres' : null,
-                        )),
-                    SizedBox(height: 20),
-                    Obx(() => _buildInputField(
-                          controller: controller.passwordConfirmationController,
-                          label: 'Confirmar contraseña',
-                          icon: Icons.lock_outline,
-                          obscureText: !controller.isPasswordConfirmVisible.value,
-                          suffixIcon: _buildPasswordToggle(controller.isPasswordConfirmVisible),
-                          validator: (value) => value != controller.passwordController.text ? 'Las contraseñas no coinciden' : null,
-                        )),
-                    
-                    SizedBox(height: 20),
-                    _buildDatePickerField(context),
+                  Form(
+                    key: controller.formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(height: 30),
 
-                    SizedBox(height: 20),
-                    _buildDropdownField(
-                      value: controller.gender.value,
-                      onChanged: (value) => controller.gender.value = value,
-                      items: ['Masculino', 'Femenino', 'Otro'],
-                      hint: 'Género (Opcional)',
-                      icon: Icons.wc_outlined,
-                    ),
-                    SizedBox(height: 20),
-                    _buildInputField(
-                      controller: controller.countryController,
-                      label: 'País (Opcional)',
-                      icon: Icons.public_outlined,
-                    ),
-                    SizedBox(height: 20),
-                     _buildInputField(
-                      controller: controller.addressController,
-                      label: 'Dirección (Opcional)',
-                      icon: Icons.location_on_outlined,
-                    ),
-                    SizedBox(height: 20),
-                     _buildDropdownField(
-                      value: controller.preferredLanguage.value,
-                      onChanged: (value) => controller.preferredLanguage.value = value,
-                      items: ['Español', 'Inglés', 'Portugués', 'Quechua'],
-                      hint: 'Idioma Preferido (Opcional)',
-                      icon: Icons.language_outlined,
-                    ),
+                        // Selector de Imagen de Perfil
+                        _buildProfileImageSelector(),
+                        SizedBox(height: 30),
 
-                    SizedBox(height: 40),
-                    Obx(() => _buildRegisterButton()),
-                    SizedBox(height: 20),
+                        // Título
+                        Text(
+                          'Crear Cuenta',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Completa tus datos para unirte',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 30),
 
-                     // Botón para volver al Login
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      child: Text(
-                        '¿Ya tienes una cuenta? Inicia Sesión',
-                        style: TextStyle(color: Colors.white70),
-                      ),
+                        // --- Campos del Formulario ---
+                        _buildInputField(
+                          controller: controller.nameController,
+                          label: 'Nombre completo',
+                          icon: Icons.person_outline,
+                          validator: (value) => (value?.isEmpty ?? true) ? 'Ingresa tu nombre' : null,
+                        ),
+                        SizedBox(height: 20),
+                        _buildInputField(
+                          controller: controller.emailController,
+                          label: 'Correo electrónico',
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value?.isEmpty ?? true) return 'Ingresa tu email';
+                            if (!GetUtils.isEmail(value!)) return 'Email inválido';
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 20),
+                         _buildInputField(
+                          controller: controller.phoneController,
+                          label: 'Teléfono (Opcional)',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        SizedBox(height: 20),
+                        Obx(() => _buildInputField(
+                              controller: controller.passwordController,
+                              label: 'Contraseña',
+                              icon: Icons.lock_outline,
+                              obscureText: !controller.isPasswordVisible.value,
+                              suffixIcon: _buildPasswordToggle(controller.isPasswordVisible),
+                              validator: (value) => (value?.length ?? 0) < 8 ? 'Mínimo 8 caracteres' : null,
+                            )),
+                        SizedBox(height: 20),
+                        Obx(() => _buildInputField(
+                              controller: controller.passwordConfirmationController,
+                              label: 'Confirmar contraseña',
+                              icon: Icons.lock_outline,
+                              obscureText: !controller.isPasswordConfirmVisible.value,
+                              suffixIcon: _buildPasswordToggle(controller.isPasswordConfirmVisible),
+                              validator: (value) => value != controller.passwordController.text ? 'Las contraseñas no coinciden' : null,
+                            )),
+                        
+                        SizedBox(height: 20),
+                        _buildDatePickerField(context),
+
+                        SizedBox(height: 20),
+                        _buildDropdownField(
+                          value: controller.gender.value,
+                          onChanged: (value) => controller.gender.value = value,
+                          items: ['Masculino', 'Femenino', 'Otro'],
+                          hint: 'Género (Opcional)',
+                          icon: Icons.wc_outlined,
+                        ),
+                        SizedBox(height: 20),
+                        _buildInputField(
+                          controller: controller.countryController,
+                          label: 'País (Opcional)',
+                          icon: Icons.public_outlined,
+                        ),
+                        SizedBox(height: 20),
+                         _buildInputField(
+                          controller: controller.addressController,
+                          label: 'Dirección (Opcional)',
+                          icon: Icons.location_on_outlined,
+                        ),
+                        SizedBox(height: 20),
+                         _buildDropdownField(
+                          value: controller.preferredLanguage.value,
+                          onChanged: (value) => controller.preferredLanguage.value = value,
+                          items: ['Español', 'Inglés', 'Portugués', 'Quechua'],
+                          hint: 'Idioma Preferido (Opcional)',
+                          icon: Icons.language_outlined,
+                        ),
+
+                        SizedBox(height: 40),
+                        Obx(() => _buildRegisterButton()),
+                        SizedBox(height: 20),
+
+                         // Botón para volver al Login
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text(
+                            '¿Ya tienes una cuenta? Inicia Sesión',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                        SizedBox(height: 40),
+                      ],
                     ),
-                    SizedBox(height: 40),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

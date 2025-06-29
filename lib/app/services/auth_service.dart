@@ -340,20 +340,21 @@ class AuthService extends GetxService {
   }
 
   String _handleErrorResponse(Map<String, dynamic> responseData, int statusCode) {
-    if (responseData['message'] != null) {
+    if (responseData['message'] != null && responseData['errors'] == null) {
       return responseData['message'];
     }
-    
+
     if (responseData['errors'] != null) {
       final errors = responseData['errors'] as Map<String, dynamic>;
       if (errors.isNotEmpty) {
-        final firstError = errors.values.first;
-        if (firstError is List && firstError.isNotEmpty) {
-          return firstError.first;
-        }
+        // Concatenar todos los mensajes de error de todos los campos
+        final allMessages = errors.values
+            .expand((e) => e is List ? e : [e])
+            .join('\n');
+        return allMessages;
       }
     }
-    
+
     switch (statusCode) {
       case 401:
         return 'Credenciales inválidas';

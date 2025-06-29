@@ -64,8 +64,8 @@ class LoginController extends GetxController {
         duration: Duration(seconds: 3),
       );
 
-      // Navegamos hacia atrás inmediatamente.
-      Get.back();
+      // Navegamos a Home tras login exitoso.
+      Get.offAllNamed('/home');
 
     } catch (e) {
       print('[LoginController] Excepción capturada. Mostrando error al usuario: $e');
