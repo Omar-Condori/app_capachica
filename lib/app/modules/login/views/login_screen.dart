@@ -324,14 +324,37 @@ class LoginScreen extends GetView<LoginController> {
     return Align(
       alignment: Alignment.center,
       child: GestureDetector(
-        onTap: () {
-          Get.snackbar(
-            'Próximamente',
-            'La recuperación de contraseña aún no está disponible.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.blueGrey,
-            colorText: Colors.white,
-          );
+        onTap: () async {
+          final email = controller.emailController.text.trim();
+          if (email.isEmpty) {
+            Get.snackbar(
+              'Campo requerido',
+              'Por favor ingresa tu correo electrónico para recuperar tu contraseña.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.orange,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          try {
+            await controller.forgotPassword(email);
+            Get.snackbar(
+              'Enlace enviado',
+              'Se ha enviado un enlace de recuperación a tu correo electrónico.',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.green,
+              colorText: Colors.white,
+            );
+          } catch (e) {
+            Get.snackbar(
+              'Error',
+              e.toString(),
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+          }
         },
         child: Text(
           '¿Olvidaste tu contraseña?',

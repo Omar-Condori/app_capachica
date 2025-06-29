@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../routes/app_routes.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/municipalidad_service.dart';
+import '../../../data/repositories/municipalidad_repository_impl.dart';
+import '../../../domain/repositories/municipalidad_repository.dart';
+import '../../../domain/usecases/get_resumen_usecase.dart';
 
 class HomeController extends GetxController {
   final AuthService authService = Get.find<AuthService>();
+  
+  // Servicios y casos de uso para el resumen
+  late final MunicipalidadService _municipalidadService;
+  late final MunicipalidadRepository _municipalidadRepository;
+  late final GetResumenUseCase _getResumenUseCase;
 
   String get userDisplayName {
     if (!authService.isLoggedIn) return 'Mi Perfil';
@@ -26,11 +35,27 @@ class HomeController extends GetxController {
   final selectedTopNav = 'Resumen'.obs;
   final selectedBottomNav = 'Inicio'.obs;
   final showProfileDropdown = false.obs;
+  
+  // Variables observables para el resumen
+  final isLoadingResumen = false.obs;
+  final resumenData = Rxn<ResumenData>();
+  final resumenError = Rxn<String>();
 
   @override
   void onInit() {
     super.onInit();
     print('HomeController inicializado');
+    
+    // Inicializar servicios y casos de uso
+    _municipalidadService = MunicipalidadService();
+    _municipalidadRepository = MunicipalidadRepositoryImpl(_municipalidadService);
+    _getResumenUseCase = GetResumenUseCase(_municipalidadRepository);
+  }
+
+  @override
+  void onClose() {
+    _municipalidadService.dispose();
+    super.onClose();
   }
 
   // Métodos para manejar navegación superior
@@ -227,16 +252,8 @@ class HomeController extends GetxController {
 
   // Métodos para manejar botones de acción
   void onHotelsTap() {
-    print('Hotels presionado');
-    Get.snackbar(
-      'Hospedajes',
-      'Explorando opciones de hospedaje...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.white.withOpacity(0.95),
-      colorText: Colors.black87,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-    );
+    print('🗺️ HomeController: Ver planes presionado, navegando a pantalla de planes...');
+    Get.toNamed(AppRoutes.PLANES);
   }
 
   void onToursTap() {
@@ -270,7 +287,67 @@ class HomeController extends GetxController {
 
   // Métodos privados para manejar cada acción
   void _handleResumen() {
-    // Lógica para "Resumen"
+    print('🏠 HomeController: Resumen seleccionado, navegando a pantalla de resumen...');
+    Get.toNamed(AppRoutes.RESUMEN);
+  }
+
+  /// Carga los datos del resumen usando el caso de uso
+  void loadResumen() async {
+    try {
+      print('🏠 HomeController: Iniciando carga del resumen...');
+      
+      // Limpiar errores previos y establecer estado de carga
+      resumenError.value = null;
+      isLoadingResumen.value = true;
+      
+      // Ejecutar el caso de uso
+      final data = await _getResumenUseCase.execute();
+      
+      // Actualizar los datos
+      resumenData.value = data;
+      isLoadingResumen.value = false;
+      
+      print('✅ HomeController: Resumen cargado exitosamente');
+      
+      // Mostrar snackbar de éxito
+      Get.snackbar(
+        'Resumen Cargado',
+        'Datos actualizados correctamente',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Color(0xFF4CAF50).withOpacity(0.95),
+        colorText: Colors.white,
+        borderRadius: 12,
+        margin: EdgeInsets.all(16),
+        icon: Icon(Icons.check_circle, color: Colors.white),
+        duration: Duration(seconds: 2),
+      );
+      
+      // Mostrar información en consola
+      print('📊 HomeController: Resumen cargado con:');
+      print('   - Sliders: ${data.sliders.length}');
+      print('   - Municipalidades: ${data.municipalidades.length}');
+      print('   - Primera municipalidad con detalles: ${data.primeraMunicipalidadDetalle != null}');
+      
+    } catch (e) {
+      print('❌ HomeController: Error cargando resumen: $e');
+      
+      // Actualizar estado de error
+      resumenError.value = e.toString();
+      isLoadingResumen.value = false;
+      
+      // Mostrar snackbar de error
+      Get.snackbar(
+        'Error al Cargar',
+        'No se pudieron cargar los datos del resumen',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Color(0xFFD32F2F).withOpacity(0.95),
+        colorText: Colors.white,
+        borderRadius: 12,
+        margin: EdgeInsets.all(16),
+        icon: Icon(Icons.error, color: Colors.white),
+        duration: Duration(seconds: 3),
+      );
+    }
   }
 
   void _handleNegocios() {

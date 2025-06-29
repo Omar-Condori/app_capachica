@@ -11,6 +11,12 @@ import '../modules/register/bindings/register_binding.dart';
 import '../modules/register/views/register_screen.dart';
 import '../modules/services_capachica/bindings/services_capachica_binding.dart';
 import '../modules/services_capachica/views/services_capachica_screen.dart';
+import '../modules/resumen/bindings/resumen_binding.dart';
+import '../modules/resumen/views/resumen_screen.dart';
+import '../modules/planes/bindings/planes_binding.dart';
+import '../modules/planes/views/planes_screen.dart';
+import '../modules/planes/bindings/plan_detalle_binding.dart';
+import '../modules/planes/views/plan_detalle_screen.dart';
 import 'app_routes.dart';
 
 class FadeScaleTransition extends CustomTransition {
@@ -78,6 +84,27 @@ class AppPages {
       page: () => ServicesCapachicaScreen(),
       binding: ServicesCapachicaBinding(),
     ),
+    GetPage(
+      name: AppRoutes.RESUMEN,
+      page: () => ResumenScreen(),
+      binding: ResumenBinding(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
+    GetPage(
+      name: AppRoutes.PLANES,
+      page: () => PlanesScreen(),
+      binding: PlanesBinding(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
+    GetPage(
+      name: AppRoutes.PLAN_DETALLE,
+      page: () => PlanDetalleScreen(),
+      binding: PlanDetalleBinding(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
   ];
 }
 
@@ -88,6 +115,9 @@ abstract class Routes {
   static const REGISTER = _Paths.REGISTER;
   static const GOOGLE_SIGNIN_WEBVIEW = _Paths.GOOGLE_SIGNIN_WEBVIEW;
   static const SERVICES_CAPACHICA = _Paths.SERVICES_CAPACHICA;
+  static const RESUMEN = _Paths.RESUMEN;
+  static const PLANES = _Paths.PLANES;
+  static const PLAN_DETALLE = _Paths.PLAN_DETALLE;
 }
 
 abstract class _Paths {
@@ -97,4 +127,7 @@ abstract class _Paths {
   static const REGISTER = '/register';
   static const GOOGLE_SIGNIN_WEBVIEW = '/google-signin-webview';
   static const SERVICES_CAPACHICA = '/services-capachica';
+  static const RESUMEN = '/resumen';
+  static const PLANES = '/planes';
+  static const PLAN_DETALLE = '/plan-detalle';
 }

@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../services/auth_service.dart';
-import '../../../data/models/login_model.dart';
+import '../../../core/config/backend_config.dart';
 
 class GoogleSignInWebView extends StatefulWidget {
+  const GoogleSignInWebView({Key? key}) : super(key: key);
+
   @override
   _GoogleSignInWebViewState createState() => _GoogleSignInWebViewState();
 }
@@ -57,23 +59,63 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
 
   Future<void> _loadInitialUrl() async {
     try {
+      print('[WebView] Iniciando carga de URL de Google...');
+      
+      // Primero buscar la URL del backend
+      print('[WebView] Buscando URL del backend...');
+      final backendUrl = await _authService.findBackendUrl();
+      
+      if (backendUrl == null) {
+        throw 'No se pudo encontrar el backend. Verifica que esté ejecutándose.';
+      }
+      
+      print('[WebView] Backend encontrado en: $backendUrl');
+      
+      // Actualizar la URL base del AuthProvider
+      _authProvider.setBaseUrl(backendUrl);
+      
+      // Probar la conectividad
+      print('[WebView] Probando conectividad...');
+      final isConnected = await _authService.testConnection();
+      
+      if (!isConnected) {
+        throw 'No se pudo conectar con el servidor en $backendUrl';
+      }
+      
+      print('[WebView] Conectividad OK, obteniendo URL de Google...');
+      
+      // Probar específicamente el endpoint de Google
+      print('[WebView] Probando endpoint de Google...');
+      final googleEndpointOk = await _authService.testGoogleEndpoint();
+      
+      if (!googleEndpointOk) {
+        throw 'El endpoint de Google no está disponible en el backend. Verifica que la ruta /auth/google esté implementada.';
+      }
+      
+      print('[WebView] Endpoint de Google OK, procediendo...');
+      
       final response = await _authProvider.getGoogleSignInUrl();
-      if (response.statusCode == 200 && response.body['data']['url'] != null) {
+      
+      if (response.statusCode == 200 && response.body['data']?['url'] != null) {
         String authUrl = response.body['data']['url'];
         // Reemplazar las barras invertidas escapadas
         authUrl = authUrl.replaceAll(r'\/', '/');
         print('[WebView] URL de autenticación obtenida: $authUrl');
         _webViewController.loadRequest(Uri.parse(authUrl));
       } else {
-        throw 'No se pudo obtener la URL de autenticación de Google del backend.';
+        print('[WebView] Respuesta inesperada del backend:');
+        print('[WebView] Status: ${response.statusCode}');
+        print('[WebView] Body: ${response.body}');
+        throw 'No se pudo obtener la URL de autenticación de Google del backend. Respuesta: ${response.body}';
       }
     } catch (e) {
       print('[WebView] Error al cargar la URL inicial: $e');
       Get.snackbar(
         'Error de Red',
-        'No se pudo conectar con el servidor para iniciar sesión con Google.',
+        'No se pudo conectar con el servidor para iniciar sesión con Google: $e',
         backgroundColor: Color(0xFFFF9100),
         colorText: Colors.white,
+        duration: Duration(seconds: 5),
       );
       Get.back();
     }
@@ -87,7 +129,7 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
           uri.queryParameters['access_token'] ??
           uri.fragment.split('access_token=').last.split('&').first;
 
-      if (token != null) {
+      if (token.isNotEmpty) {
         print('[GoogleSignInWebView] Token obtenido: $token');
 
         // Enviar el token al backend
@@ -102,8 +144,8 @@ class _GoogleSignInWebViewState extends State<GoogleSignInWebView> {
           throw 'No se recibió token de sesión del servidor';
         }
 
-        // Iniciar sesión
-        await _authService.login(loginResponse!);
+        // Iniciar sesión usando el nuevo AuthService
+        await _authService.loginWithGoogleResponse(loginResponse!);
 
         Get.rawSnackbar(
           message: 'Inicio de sesión con Google exitoso',

@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import '../../../data/repositories/auth_repository.dart';
+import '../../../services/auth_service.dart';
 import '../../../data/models/login_model.dart';
 import '../../../routes/app_routes.dart';
 
 class RegisterController extends GetxController {
-  final AuthRepository _authRepository = Get.find<AuthRepository>();
+  final AuthService _authService = Get.find<AuthService>();
   final ImagePicker _picker = ImagePicker();
 
   final formKey = GlobalKey<FormState>();
@@ -72,20 +72,12 @@ class RegisterController extends GetxController {
         gender: gender.value,
         preferredLanguage: preferredLanguage.value,
       );
-      
-      final formData = FormData(request.toMap());
-      if (profileImage.value != null) {
-        formData.files.add(MapEntry(
-            'foto_perfil',
-            MultipartFile(profileImage.value!, filename: 'profile_pic_${DateTime.now().millisecondsSinceEpoch}.jpg')
-        ));
-      }
 
-      await _authRepository.register(formData);
+      final response = await _authService.register(request);
 
       Get.snackbar(
         '¡Registro Exitoso!',
-        'Hemos enviado un enlace de verificación a tu correo. ¡Revisa tu bandeja de entrada!',
+        response.message ?? 'Hemos enviado un enlace de verificación a tu correo. ¡Revisa tu bandeja de entrada!',
         backgroundColor: Colors.green,
         colorText: Colors.white,
         duration: const Duration(seconds: 5),

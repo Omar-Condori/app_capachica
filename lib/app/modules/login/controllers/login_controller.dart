@@ -1,16 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import '../../../data/repositories/auth_repository.dart';
-import '../../../data/models/login_model.dart';
 import '../../../services/auth_service.dart';
 
 class LoginController extends GetxController {
-  final AuthRepository _authRepository = Get.find<AuthRepository>();
   final AuthService _authService = Get.find<AuthService>();
-  final GetStorage _storage = GetStorage();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -28,21 +21,47 @@ class LoginController extends GetxController {
 
     isLoading.value = true;
     print('[LoginController] Iniciando proceso de login.');
+    
     try {
-      final response = await _authRepository.login(
+      // Probar formatos de respuesta para debugging
+      await _authService.testResponseFormats();
+      
+      // Buscar la URL del backend
+      print('[LoginController] Buscando URL del backend...');
+      final backendUrl = await _authService.findBackendUrl();
+      
+      if (backendUrl == null) {
+        throw 'No se pudo encontrar el backend. Verifica que esté ejecutándose y sea accesible desde la red.';
+      }
+      
+      print('[LoginController] Backend encontrado en: $backendUrl');
+      
+      // Probar la conectividad
+      print('[LoginController] Probando conectividad con el backend...');
+      final isConnected = await _authService.testConnection();
+      
+      if (!isConnected) {
+        throw 'No se pudo conectar con el servidor en $backendUrl';
+      }
+      
+      print('[LoginController] Conectividad OK, procediendo con login...');
+      
+      final response = await _authService.login(
         emailController.text.trim(),
         passwordController.text,
       );
 
       // Si llegamos aquí, el login fue exitoso y el token existe.
-      print('[LoginController] Login exitoso. Respuesta del repositorio recibida.');
-      await _authService.login(response);
-
+      print('[LoginController] Login exitoso. Respuesta del servicio recibida.');
+      print('[LoginController] Token: ${response.token}');
+      print('[LoginController] Usuario: ${response.user?.name}');
+      
       Get.rawSnackbar(
-        message: 'Inicio de sesión exitoso',
+        message: response.message ?? 'Inicio de sesión exitoso',
         backgroundColor: Colors.green,
         borderRadius: 12,
         margin: EdgeInsets.all(16),
+        duration: Duration(seconds: 3),
       );
 
       // Navegamos hacia atrás inmediatamente.
@@ -55,6 +74,7 @@ class LoginController extends GetxController {
         e.toString(),
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: Duration(seconds: 5),
       );
     } finally {
       isLoading.value = false;
@@ -74,6 +94,17 @@ class LoginController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
+    }
+  }
+
+  Future<void> forgotPassword(String email) async {
+    print('[LoginController] Iniciando proceso de recuperación de contraseña para: $email');
+    try {
+      await _authService.forgotPassword(email);
+      print('[LoginController] Solicitud de recuperación de contraseña enviada exitosamente.');
+    } catch (e) {
+      print('[LoginController] Error en recuperación de contraseña: $e');
+      rethrow;
     }
   }
 

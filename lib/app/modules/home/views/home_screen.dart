@@ -156,7 +156,7 @@ class HomeScreen extends GetView<HomeController> {
               Expanded(
                 child: _buildActionButton(
                   'Ver Planes',
-                  Icons.hotel_outlined,
+                  Icons.map,
                   false,
                       () => controller.onHotelsTap(),
                   screenWidth,
@@ -305,12 +305,21 @@ class HomeScreen extends GetView<HomeController> {
           children: [
             AnimatedSwitcher(
               duration: Duration(milliseconds: 200),
-              child: Icon(
-                isSelected ? filledIcon : outlinedIcon,
-                key: ValueKey(isSelected),
-                color: isSelected ? Colors.white : Colors.white60,
-                size: isSelected ? 26 : 24,
-              ),
+              child: label == 'Resumen' && controller.isLoadingResumen.value
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Icon(
+                      isSelected ? filledIcon : outlinedIcon,
+                      key: ValueKey(isSelected),
+                      color: isSelected ? Colors.white : Colors.white60,
+                      size: isSelected ? 26 : 24,
+                    ),
             ),
             SizedBox(height: 4),
             Text(
