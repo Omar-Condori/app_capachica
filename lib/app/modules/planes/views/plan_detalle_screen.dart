@@ -3,9 +3,10 @@ import 'package:get/get.dart';
 import '../controllers/plan_detalle_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 
 class PlanDetalleScreen extends GetView<PlanDetalleController> {
-  const PlanDetalleScreen({Key? key}) : super(key: key);
+  const PlanDetalleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +15,9 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
         title: Text('Detalle del Plan'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        actions: [
+          const ThemeToggleButton(),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -27,9 +31,9 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                 children: [
                   Icon(Icons.error_outline, size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
-                  Text('Error al cargar detalles', style: AppTheme.textTheme.headlineSmall),
+                  Text('Error al cargar detalles', style: AppTheme.lightTextTheme.headlineSmall),
                   const SizedBox(height: 8),
-                  Text(controller.errorMessage.value, style: AppTheme.textTheme.bodyMedium, textAlign: TextAlign.center),
+                  Text(controller.errorMessage.value, style: AppTheme.lightTextTheme.bodyMedium, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: controller.loadDetalle,
@@ -42,7 +46,7 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
             ),
           );
         } else if (controller.planDetalle.value == null) {
-          return Center(child: Text('No hay datos para mostrar', style: AppTheme.textTheme.bodyLarge));
+          return Center(child: Text('No hay datos para mostrar', style: AppTheme.lightTextTheme.bodyLarge));
         }
         final detalle = controller.planDetalle.value!;
         return RefreshIndicator(
@@ -62,14 +66,14 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 220,
-                      color: AppColors.primary.withOpacity(0.08),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       child: Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.image_not_supported, size: 64, color: AppColors.primary),
                             SizedBox(height: 8),
-                            Text('Imagen no disponible', style: AppTheme.textTheme.bodyMedium?.copyWith(color: AppColors.primary)),
+                            Text('Imagen no disponible', style: AppTheme.lightTextTheme.bodyMedium?.copyWith(color: AppColors.primary)),
                           ],
                         ),
                       ),
@@ -84,20 +88,20 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                   Expanded(
                     child: Text(
                       detalle.plan.titulo,
-                      style: AppTheme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: AppTheme.lightTextTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
                   if (detalle.plan.precio != null)
                     Text(
                       '\$${detalle.plan.precio!.toStringAsFixed(2)}',
-                      style: AppTheme.textTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      style: AppTheme.lightTextTheme.titleLarge?.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
                     ),
                 ],
               ),
               const SizedBox(height: 8),
               // Descripción
               if (detalle.plan.descripcion != null && detalle.plan.descripcion!.isNotEmpty)
-                Text(detalle.plan.descripcion!, style: AppTheme.textTheme.bodyMedium),
+                Text(detalle.plan.descripcion!, style: AppTheme.lightTextTheme.bodyMedium),
               const SizedBox(height: 12),
               // Info básica
               Row(
@@ -117,11 +121,11 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
               const SizedBox(height: 16),
               // Itinerario
               if (detalle.itinerario.isNotEmpty) ...[
-                Text('Itinerario', style: AppTheme.textTheme.titleLarge),
+                Text('Itinerario', style: AppTheme.lightTextTheme.titleLarge),
                 const SizedBox(height: 8),
                 ...detalle.itinerario.map((item) => ListTile(
                   leading: Icon(Icons.event_note, color: AppColors.primary),
-                  title: Text(item.titulo, style: AppTheme.textTheme.bodyLarge),
+                  title: Text(item.titulo, style: AppTheme.lightTextTheme.bodyLarge),
                   subtitle: Text(item.descripcion ?? ''),
                   trailing: Text(item.horaInicio != null ? '${item.horaInicio} - ${item.horaFin}' : ''),
                 )),
@@ -129,7 +133,7 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
               ],
               // Incluye / No incluye
               if (detalle.incluye.isNotEmpty || detalle.noIncluye.isNotEmpty) ...[
-                Text('Incluye', style: AppTheme.textTheme.titleLarge),
+                Text('Incluye', style: AppTheme.lightTextTheme.titleLarge),
                 const SizedBox(height: 8),
                 ...detalle.incluye.map((inc) => ListTile(
                   leading: Icon(Icons.check_circle, color: Colors.green),
@@ -138,7 +142,7 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                 )),
                 if (detalle.noIncluye.isNotEmpty) ...[
                   const SizedBox(height: 8),
-                  Text('No incluye', style: AppTheme.textTheme.titleLarge),
+                  Text('No incluye', style: AppTheme.lightTextTheme.titleLarge),
                   ...detalle.noIncluye.map((inc) => ListTile(
                     leading: Icon(Icons.cancel, color: Colors.red),
                     title: Text(inc.nombre),
@@ -149,18 +153,18 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
               ],
               // Información adicional
               if (detalle.informacionAdicional != null && detalle.informacionAdicional!.isNotEmpty) ...[
-                Text('Información adicional', style: AppTheme.textTheme.titleLarge),
+                Text('Información adicional', style: AppTheme.lightTextTheme.titleLarge),
                 const SizedBox(height: 8),
                 ...detalle.informacionAdicional!.entries.map((e) => ListTile(
                   leading: Icon(Icons.info_outline, color: AppColors.primary),
-                  title: Text('${e.key}'),
-                  subtitle: Text('${e.value}'),
+                  title: Text(e.key),
+                  subtitle: Text(e.value),
                 )),
                 const SizedBox(height: 16),
               ],
               // Emprendedores asociados
               if (controller.emprendedores.isNotEmpty) ...[
-                Text('Emprendedores asociados', style: AppTheme.textTheme.titleLarge),
+                Text('Emprendedores asociados', style: AppTheme.lightTextTheme.titleLarge),
                 const SizedBox(height: 8),
                 ...controller.emprendedores.map((emp) => Card(
                   child: ListTile(
@@ -198,19 +202,14 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 2,
             ),
             onPressed: () {
-              // Aquí puedes abrir un formulario de reserva o mostrar un mensaje
+              // TODO: Implementar lógica de reserva
               Get.snackbar(
                 'Reserva',
-                'Funcionalidad de reserva próximamente',
+                'Función de reserva en desarrollo',
                 backgroundColor: AppColors.primary,
                 colorText: Colors.white,
-                snackPosition: SnackPosition.BOTTOM,
-                borderRadius: 12,
-                margin: EdgeInsets.all(16),
-                icon: Icon(Icons.shopping_bag, color: Colors.white),
               );
             },
           ),
@@ -223,9 +222,9 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18, color: color ?? AppColors.primary),
+        Icon(icon, size: 20, color: color ?? AppColors.primary),
         const SizedBox(width: 4),
-        Text(text, style: AppTheme.textTheme.bodySmall),
+        Text(text, style: AppTheme.lightTextTheme.bodyMedium),
       ],
     );
   }

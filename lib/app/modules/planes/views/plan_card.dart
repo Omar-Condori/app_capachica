@@ -7,54 +7,165 @@ class PlanCard extends StatelessWidget {
   final Plan plan;
   final VoidCallback onTap;
 
-  const PlanCard({
-    Key? key,
-    required this.plan,
-    required this.onTap,
-  }) : super(key: key);
+  const PlanCard({super.key, required this.plan, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white,
+                AppColors.background.withValues(alpha: 0.1),
+              ],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Imagen del plan
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: plan.imagenUrl != null && plan.imagenUrl!.isNotEmpty
+                      ? Image.network(
+                          plan.imagenUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                        )
+                      : _buildPlaceholderImage(),
+                ),
+              ),
+              
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Título y precio
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            plan.titulo,
+                            style: AppTheme.lightTextTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (plan.precio != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '\$${plan.precio!.toStringAsFixed(2)}',
+                              style: AppTheme.lightTextTheme.titleMedium?.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 8),
+                    
+                    // Descripción
+                    if (plan.descripcion != null && plan.descripcion!.isNotEmpty)
+                      Text(
+                        plan.descripcion!,
+                        style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Información adicional
+                    Row(
+                      children: [
+                        if (plan.duracion != null) ...[
+                          _infoChip(Icons.schedule, '${plan.duracion} días'),
+                          const SizedBox(width: 8),
+                        ],
+                        if (plan.ubicacion != null) ...[
+                          _infoChip(Icons.location_on, plan.ubicacion!),
+                          const SizedBox(width: 8),
+                        ],
+                        if (plan.rating != null) ...[
+                          _infoChip(Icons.star, plan.rating!.toStringAsFixed(1), color: Colors.amber),
+                        ],
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Botón de ver más
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: onTap,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Ver detalles',
+                          style: AppTheme.lightTextTheme.labelLarge?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderImage() {
+    return Container(
+      color: AppColors.primary.withValues(alpha: 0.08),
+      child: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Imagen del plan
-            _buildImageSection(),
-            
-            // Contenido del plan
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Título y categoría
-                  _buildHeaderSection(),
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Descripción
-                  if (plan.descripcion != null && plan.descripcion!.isNotEmpty)
-                    _buildDescriptionSection(),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Información adicional
-                  _buildInfoSection(),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // Precio y botón
-                  _buildPriceSection(),
-                ],
+            Icon(Icons.image_not_supported, size: 48, color: AppColors.primary),
+            const SizedBox(height: 8),
+            Text(
+              'Imagen no disponible',
+              style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
+                color: AppColors.primary,
               ),
             ),
           ],
@@ -63,210 +174,27 @@ class PlanCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImageSection() {
+  Widget _infoChip(IconData icon, String text, {Color? color}) {
     return Container(
-      height: 200,
-      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        color: Colors.grey[200],
+        color: (color ?? AppColors.primary).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        child: plan.imagenUrl != null && plan.imagenUrl!.isNotEmpty
-            ? Image.network(
-                plan.imagenUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return _buildPlaceholderImage();
-                },
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return _buildPlaceholderImage();
-                },
-              )
-            : _buildPlaceholderImage(),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderImage() {
-    return Container(
-      color: Colors.grey[300],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.map,
-            size: 48,
-            color: AppColors.primary,
-          ),
-          const SizedBox(height: 8),
+          Icon(icon, size: 16, color: color ?? AppColors.primary),
+          const SizedBox(width: 4),
           Text(
-            'Imagen no disponible',
-            style: AppTheme.textTheme.bodyMedium?.copyWith(
-              color: AppColors.textSecondary,
+            text,
+            style: AppTheme.lightTextTheme.bodySmall?.copyWith(
+              color: color ?? AppColors.primary,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildHeaderSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            plan.titulo,
-            style: AppTheme.textTheme.titleLarge?.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (plan.categoria != null && plan.categoria!.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              plan.categoria!,
-              style: AppTheme.textTheme.bodySmall?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildDescriptionSection() {
-    return Text(
-      plan.descripcion!,
-      style: AppTheme.textTheme.bodyMedium?.copyWith(
-        color: AppColors.textSecondary,
-      ),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-    );
-  }
-
-  Widget _buildInfoSection() {
-    return Row(
-      children: [
-        // Duración
-        if (plan.duracion != null)
-          _buildInfoItem(
-            icon: Icons.schedule,
-            text: '${plan.duracion} día${plan.duracion! > 1 ? 's' : ''}',
-          ),
-        
-        if (plan.duracion != null && plan.ubicacion != null)
-          const SizedBox(width: 16),
-        
-        // Ubicación
-        if (plan.ubicacion != null)
-          Expanded(
-            child: _buildInfoItem(
-              icon: Icons.location_on,
-              text: plan.ubicacion!,
-            ),
-          ),
-        
-        const SizedBox(width: 16),
-        
-        // Rating
-        if (plan.rating != null)
-          _buildInfoItem(
-            icon: Icons.star,
-            text: plan.rating!.toStringAsFixed(1),
-            iconColor: Colors.amber,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildInfoItem({
-    required IconData icon,
-    required String text,
-    Color? iconColor,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: iconColor ?? AppColors.textSecondary,
-        ),
-        const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            text,
-            style: AppTheme.textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPriceSection() {
-    return Row(
-      children: [
-        // Precio
-        if (plan.precio != null)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Precio',
-                  style: AppTheme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  '\$${plan.precio!.toStringAsFixed(2)}',
-                  style: AppTheme.textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        
-        const SizedBox(width: 16),
-        
-        // Botón ver detalles
-        ElevatedButton(
-          onPressed: onTap,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Text(
-            'Ver detalles',
-            style: AppTheme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
     );
   }
 } 

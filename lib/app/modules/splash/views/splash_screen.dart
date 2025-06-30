@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/splash_controller.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -84,6 +85,13 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           opacity: _isExiting ? _exitFadeAnimation.value : 1.0,
           child: Scaffold(
             backgroundColor: Color(0xFFFF6600), // Naranja vivo de fondo
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              actions: [
+                const ThemeToggleButton(),
+              ],
+            ),
             body: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

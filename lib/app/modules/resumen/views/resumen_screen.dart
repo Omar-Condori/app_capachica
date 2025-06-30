@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/resumen_controller.dart';
 import '../../../domain/usecases/get_resumen_usecase.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 
 class ResumenScreen extends GetView<ResumenController> {
   @override
@@ -26,6 +27,7 @@ class ResumenScreen extends GetView<ResumenController> {
             icon: Icon(Icons.refresh, color: Colors.white),
             onPressed: () => controller.loadResumen(),
           ),
+          const ThemeToggleButton(),
         ],
       ),
       body: Obx(() {

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/planes_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 import 'plan_card.dart';
 
 class PlanesScreen extends GetView<PlanesController> {
@@ -15,7 +16,7 @@ class PlanesScreen extends GetView<PlanesController> {
       appBar: AppBar(
         title: Text(
           'Planes Turísticos',
-          style: AppTheme.textTheme.headlineSmall?.copyWith(
+          style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
           ),
@@ -32,6 +33,7 @@ class PlanesScreen extends GetView<PlanesController> {
             icon: Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () => controller.refreshPlanes(),
           ),
+          const ThemeToggleButton(),
         ],
       ),
       body: Column(
@@ -112,7 +114,7 @@ class PlanesScreen extends GetView<PlanesController> {
             children: [
               Text(
                 'Categoría:',
-                style: AppTheme.textTheme.bodyMedium?.copyWith(
+                style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -190,7 +192,7 @@ class PlanesScreen extends GetView<PlanesController> {
           const SizedBox(height: 16),
           Text(
             'Cargando planes...',
-            style: AppTheme.textTheme.bodyLarge?.copyWith(
+            style: AppTheme.lightTextTheme.bodyLarge?.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
@@ -214,7 +216,7 @@ class PlanesScreen extends GetView<PlanesController> {
             const SizedBox(height: 16),
             Text(
               'Error al cargar planes',
-              style: AppTheme.textTheme.headlineSmall?.copyWith(
+              style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
@@ -222,7 +224,7 @@ class PlanesScreen extends GetView<PlanesController> {
             const SizedBox(height: 8),
             Obx(() => Text(
               controller.errorMessage.value,
-              style: AppTheme.textTheme.bodyMedium?.copyWith(
+              style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
@@ -262,7 +264,7 @@ class PlanesScreen extends GetView<PlanesController> {
             const SizedBox(height: 16),
             Text(
               'No se encontraron planes',
-              style: AppTheme.textTheme.headlineSmall?.copyWith(
+              style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
@@ -270,7 +272,7 @@ class PlanesScreen extends GetView<PlanesController> {
             const SizedBox(height: 8),
             Text(
               'Intenta ajustar tus filtros de búsqueda',
-              style: AppTheme.textTheme.bodyMedium?.copyWith(
+              style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,

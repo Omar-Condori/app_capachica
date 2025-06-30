@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import 'app/routes/app_pages.dart';
 import 'app/routes/app_routes.dart';
 import 'app/core/theme/app_theme.dart';
+import 'app/core/controllers/theme_controller.dart';
 import 'package:app_capachica/app/services/auth_service.dart';
 
 void main() async {
@@ -12,6 +13,9 @@ void main() async {
   // Inicializar GetStorage
   await GetStorage.init();
   await Get.putAsync(() => AuthService().init());
+  
+  // Inicializar el controlador de tema
+  Get.put(ThemeController());
 
   runApp(MyApp());
 }
@@ -21,12 +25,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'Mi App',
-      theme: AppTheme.lightTheme,
-      debugShowCheckedModeBanner: false,
-      initialRoute: AppRoutes.SPLASH,
-      getPages: AppPages.routes,
+    return GetBuilder<ThemeController>(
+      builder: (themeController) {
+        return GetMaterialApp(
+          title: 'Mi App',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeController.themeMode,
+          debugShowCheckedModeBanner: false,
+          initialRoute: AppRoutes.SPLASH,
+          getPages: AppPages.routes,
+        );
+      },
     );
   }
 }

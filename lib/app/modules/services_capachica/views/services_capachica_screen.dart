@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/services_capachica_controller.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 import 'service_card.dart';
 import 'service_detail_screen.dart';
 
@@ -10,6 +11,9 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Servicios Capachica'),
+        actions: [
+          const ThemeToggleButton(),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {

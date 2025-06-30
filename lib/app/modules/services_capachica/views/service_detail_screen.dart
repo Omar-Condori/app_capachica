@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/services_capachica_model.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 
 class ServiceDetailScreen extends StatelessWidget {
   final ServicioCapachica servicio;
@@ -58,6 +59,9 @@ class ServiceDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(servicio.nombre),
         backgroundColor: Colors.orange,
+        actions: [
+          const ThemeToggleButton(),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
