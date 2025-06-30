@@ -37,23 +37,23 @@ class ServicioCapachica {
 
   factory ServicioCapachica.fromJson(Map<String, dynamic> json) {
     return ServicioCapachica(
-      id: json['id'],
-      nombre: json['nombre'],
-      descripcion: json['descripcion'],
-      precioReferencial: json['precio_referencial'],
-      emprendedorId: json['emprendedor_id'],
-      estado: json['estado'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-      capacidad: json['capacidad'],
-      latitud: json['latitud'],
-      longitud: json['longitud'],
-      ubicacionReferencia: json['ubicacion_referencia'],
-      emprendedor: EmprendedorCapachica.fromJson(json['emprendedor']),
-      categorias: (json['categorias'] as List)
+      id: json['id'] ?? 0,
+      nombre: json['nombre'] ?? '',
+      descripcion: json['descripcion'] ?? '',
+      precioReferencial: json['precio_referencial'] ?? '0',
+      emprendedorId: json['emprendedor_id'] ?? 0,
+      estado: json['estado'] ?? false,
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
+      capacidad: json['capacidad'] ?? 0,
+      latitud: json['latitud'] ?? '',
+      longitud: json['longitud'] ?? '',
+      ubicacionReferencia: json['ubicacion_referencia'] ?? '',
+      emprendedor: EmprendedorCapachica.fromJson(json['emprendedor'] ?? {}),
+      categorias: (json['categorias'] as List? ?? [])
           .map((e) => CategoriaCapachica.fromJson(e))
           .toList(),
-      horarios: (json['horarios'] as List)
+      horarios: (json['horarios'] as List? ?? [])
           .map((e) => HorarioCapachica.fromJson(e))
           .toList(),
       sliders: json['sliders'] ?? [],
@@ -163,12 +163,12 @@ class CategoriaCapachica {
 
   factory CategoriaCapachica.fromJson(Map<String, dynamic> json) {
     return CategoriaCapachica(
-      id: json['id'],
-      nombre: json['nombre'],
-      descripcion: json['descripcion'],
-      iconoUrl: json['icono_url'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      id: json['id'] ?? 0,
+      nombre: json['nombre'] ?? '',
+      descripcion: json['descripcion'] ?? '',
+      iconoUrl: json['icono_url'] ?? '',
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
     );
   }
 }
@@ -196,14 +196,14 @@ class HorarioCapachica {
 
   factory HorarioCapachica.fromJson(Map<String, dynamic> json) {
     return HorarioCapachica(
-      id: json['id'],
-      servicioId: json['servicio_id'],
-      diaSemana: json['dia_semana'],
-      horaInicio: json['hora_inicio'],
-      horaFin: json['hora_fin'],
-      activo: json['activo'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      id: json['id'] ?? 0,
+      servicioId: json['servicio_id'] ?? 0,
+      diaSemana: json['dia_semana'] ?? '',
+      horaInicio: json['hora_inicio'] ?? '',
+      horaFin: json['hora_fin'] ?? '',
+      activo: json['activo'] ?? false,
+      createdAt: json['created_at'] ?? '',
+      updatedAt: json['updated_at'] ?? '',
     );
   }
 } 

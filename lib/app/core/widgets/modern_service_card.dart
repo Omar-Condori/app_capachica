@@ -37,7 +37,7 @@ class ModernServiceCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: Card(
         elevation: 4,
-        shadowColor: theme.shadowColor.withValues(alpha: 0.1),
+        shadowColor: theme.shadowColor.withOpacity(0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -61,7 +61,7 @@ class ModernServiceCard extends StatelessWidget {
                           end: Alignment.bottomRight,
                           colors: [
                             theme.primaryColor,
-                            theme.primaryColor.withValues(alpha: 0.8),
+                            theme.primaryColor.withOpacity(0.8),
                           ],
                         ),
                       ),
@@ -87,7 +87,7 @@ class ModernServiceCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: Colors.white.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -104,8 +104,8 @@ class ModernServiceCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: servicio.estado 
-                                  ? Colors.green.withValues(alpha: 0.9)
-                                  : Colors.red.withValues(alpha: 0.9),
+                                  ? Colors.green.withOpacity(0.9)
+                                  : Colors.red.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -128,7 +128,7 @@ class ModernServiceCard extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.7),
+                            color: Colors.black.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
@@ -166,7 +166,7 @@ class ModernServiceCard extends StatelessWidget {
                     Text(
                       servicio.descripcion,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -207,7 +207,7 @@ class ModernServiceCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: theme.primaryColor.withValues(alpha: 0.1),
+                            color: theme.primaryColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
@@ -234,7 +234,7 @@ class ModernServiceCard extends StatelessWidget {
                               Text(
                                 servicio.emprendedor.tipoServicio,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -389,14 +389,14 @@ class ModernServiceCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             theme.primaryColor,
-            theme.primaryColor.withValues(alpha: 0.8),
+            theme.primaryColor.withOpacity(0.8),
           ],
         ),
       ),
       child: Icon(
         Icons.image_rounded,
         size: 48,
-        color: Colors.white.withValues(alpha: 0.3),
+        color: Colors.white.withOpacity(0.3),
       ),
     );
   }

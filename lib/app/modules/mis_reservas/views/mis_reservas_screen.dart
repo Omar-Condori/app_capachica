@@ -11,6 +11,10 @@ class MisReservasScreen extends GetView<MisReservasController> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded, color: theme.iconTheme.color),
+          onPressed: () => Get.back(),
+        ),
         title: Text(
           'Mis Reservas',
           style: theme.textTheme.titleLarge?.copyWith(

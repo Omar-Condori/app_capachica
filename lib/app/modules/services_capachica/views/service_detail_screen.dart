@@ -7,6 +7,8 @@ import '../../../services/reserva_service.dart';
 import '../../../core/widgets/auth_redirect_dialog.dart';
 import '../../../data/models/reserva_model.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServicioCapachica servicio;
@@ -88,18 +90,15 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             // Imagen principal
             ClipRRect(
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
-              child: Image.network(
-                imagenUrl!,
-                width: double.infinity,
-                height: 220,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Image.network(
-                  'https://via.placeholder.com/600x300.png?text=Capachica',
-                  width: double.infinity,
-                  height: 220,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              child: isValidUrl(imagenUrl)
+                  ? Image.network(
+                      imagenUrl!,
+                      width: double.infinity,
+                      height: 220,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(context),
+                    )
+                  : _buildPlaceholderImage(context),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -217,13 +216,25 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
+                            backgroundColor: Color(0xFF25D366), // Verde WhatsApp
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(vertical: 14),
                           ),
-                          icon: Icon(Icons.chat, color: Colors.white),
-                          label: Text('Contactar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          onPressed: () {},
+                          icon: FaIcon(FontAwesomeIcons.whatsapp, color: Colors.white),
+                          label: Text('WhatsApp', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          onPressed: () async {
+                            final telefono = widget.servicio.emprendedor.telefono;
+                            if (telefono != null && telefono.isNotEmpty) {
+                              final url = 'https://wa.me/$telefono';
+                              if (await canLaunch(url)) {
+                                await launch(url);
+                              } else {
+                                Get.snackbar('Error', 'No se pudo abrir WhatsApp', backgroundColor: Colors.red, colorText: Colors.white);
+                              }
+                            } else {
+                              Get.snackbar('Sin número', 'El emprendedor no tiene número de WhatsApp disponible', backgroundColor: Colors.orange, colorText: Colors.white);
+                            }
+                          },
                         ),
                       ),
                       SizedBox(width: 16),
@@ -358,6 +369,21 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
             child: Text('Confirmar Reserva'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderImage(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 220,
+      color: Colors.orange[100],
+      child: Center(
+        child: Icon(
+          Icons.image,
+          size: 64,
+          color: Colors.orange[300],
+        ),
       ),
     );
   }

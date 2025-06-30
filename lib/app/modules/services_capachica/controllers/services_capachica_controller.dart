@@ -150,11 +150,22 @@ class ServicesCapachicaController extends GetxController {
 
   List<String> getCategoriasUnicas() {
     final categorias = <String>{};
+    
+    // Verificar que hay servicios disponibles
+    if (servicios.isEmpty) return [];
+    
     for (final servicio in servicios) {
-      for (final categoria in servicio.categorias) {
-        categorias.add(categoria.nombre);
+      // Verificar que el servicio tiene categorías
+      if (servicio.categorias.isNotEmpty) {
+        for (final categoria in servicio.categorias) {
+          // Verificar que la categoría tiene nombre válido
+          if (categoria.nombre.isNotEmpty) {
+            categorias.add(categoria.nombre);
+          }
+        }
       }
     }
+    
     return categorias.toList()..sort();
   }
 
