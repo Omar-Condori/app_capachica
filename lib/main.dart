@@ -6,6 +6,7 @@ import 'app/routes/app_routes.dart';
 import 'app/core/theme/app_theme.dart';
 import 'app/core/controllers/theme_controller.dart';
 import 'package:app_capachica/app/services/auth_service.dart';
+import 'package:app_capachica/app/services/reserva_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,9 @@ void main() async {
   // Inicializar GetStorage
   await GetStorage.init();
   await Get.putAsync(() => AuthService().init());
+  
+  // Inicializar el servicio de reservas
+  Get.put(ReservaService());
   
   // Inicializar el controlador de tema
   Get.put(ThemeController());

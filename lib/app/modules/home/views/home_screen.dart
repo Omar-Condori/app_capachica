@@ -255,24 +255,24 @@ class HomeScreen extends GetView<HomeController> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildBottomNavItem(
-                Icons.dashboard_outlined,
-                Icons.dashboard,
-                'Resumen',
-                controller.selectedTopNav.value == 'Resumen',
+                Icons.home_outlined,
+                Icons.home,
+                'Inicio',
+                controller.selectedTopNav.value == 'Inicio',
                 screenWidth
             ),
             _buildBottomNavItem(
-                Icons.business_outlined,
-                Icons.business,
-                'Negocios',
-                controller.selectedTopNav.value == 'Negocios',
+                Icons.store_outlined,
+                Icons.store,
+                'Emprendimientos',
+                controller.selectedTopNav.value == 'Emprendimientos',
                 screenWidth
             ),
             _buildBottomNavItem(
-                Icons.miscellaneous_services_outlined,
-                Icons.miscellaneous_services,
-                'Servicios',
-                controller.selectedTopNav.value == 'Servicios',
+                Icons.event_outlined,
+                Icons.event,
+                'Eventos',
+                controller.selectedTopNav.value == 'Eventos',
                 screenWidth
             ),
             _buildBottomNavItem(
@@ -305,7 +305,7 @@ class HomeScreen extends GetView<HomeController> {
           children: [
             AnimatedSwitcher(
               duration: Duration(milliseconds: 200),
-              child: label == 'Resumen' && controller.isLoadingResumen.value
+              child: label == 'Inicio' && controller.isLoadingResumen.value
                   ? SizedBox(
                       width: 24,
                       height: 24,

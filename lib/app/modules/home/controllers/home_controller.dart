@@ -32,7 +32,7 @@ class HomeController extends GetxController {
   }
 
   // Variables observables
-  final selectedTopNav = 'Resumen'.obs;
+  final selectedTopNav = 'Inicio'.obs;
   final selectedBottomNav = 'Inicio'.obs;
   final showProfileDropdown = false.obs;
   
@@ -71,11 +71,11 @@ class HomeController extends GetxController {
 
     // Aquí puedes agregar lógica específica para cada tab
     switch (navItem) {
-      case 'Resumen':
-        _handleResumen();
+      case 'Inicio':
+        _handleInicio();
         break;
-      case 'Negocios':
-        _handleNegocios();
+      case 'Emprendimientos':
+        _handleEmprendimientos();
         break;
       case 'Servicios':
         _handleServicios();
@@ -97,7 +97,7 @@ class HomeController extends GetxController {
   void hideProfileDropdown() {
     showProfileDropdown.value = false;
     if (selectedTopNav.value == 'Mi Perfil') {
-      selectedTopNav.value = 'Resumen'; // Volver a la opción anterior
+      selectedTopNav.value = 'Inicio'; // Volver a la opción anterior
     }
   }
 
@@ -126,33 +126,43 @@ class HomeController extends GetxController {
   void onMyReservationsTap() {
     hideProfileDropdown();
     print('Mis Reservas presionado');
-    Get.snackbar(
-      'Mis Reservas',
-      'Cargando tus reservas...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFFFF9100).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-      icon: Icon(Icons.bookmark, color: Colors.white),
-    );
-    // Get.toNamed('/reservations');
+    
+    if (!authService.isLoggedIn) {
+      Get.snackbar(
+        'Autenticación requerida',
+        'Debes iniciar sesión para ver tus reservas',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange[600],
+        colorText: Colors.white,
+        borderRadius: 12,
+        margin: EdgeInsets.all(16),
+        icon: Icon(Icons.warning, color: Colors.white),
+      );
+      Get.toNamed(AppRoutes.LOGIN);
+    } else {
+      Get.toNamed('/mis-reservas');
+    }
   }
 
   void onMyCartTap() {
     hideProfileDropdown();
     print('Mi Carrito presionado');
-    Get.snackbar(
-      'Mi Carrito',
-      'Viendo productos guardados...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFFE91E63).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-      icon: Icon(Icons.shopping_cart, color: Colors.white),
-    );
-    // Get.toNamed('/cart');
+    
+    if (!authService.isLoggedIn) {
+      Get.snackbar(
+        'Autenticación requerida',
+        'Debes iniciar sesión para ver tu carrito',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange[600],
+        colorText: Colors.white,
+        borderRadius: 12,
+        margin: EdgeInsets.all(16),
+        icon: Icon(Icons.warning, color: Colors.white),
+      );
+      Get.toNamed(AppRoutes.LOGIN);
+    } else {
+      Get.toNamed('/carrito');
+    }
   }
 
   void onSettingsTap() {
@@ -286,8 +296,8 @@ class HomeController extends GetxController {
   }
 
   // Métodos privados para manejar cada acción
-  void _handleResumen() {
-    print('🏠 HomeController: Resumen seleccionado, navegando a pantalla de resumen...');
+  void _handleInicio() {
+    print('🏠 HomeController: Inicio seleccionado, navegando a pantalla de resumen...');
     Get.toNamed(AppRoutes.RESUMEN);
   }
 
@@ -350,8 +360,9 @@ class HomeController extends GetxController {
     }
   }
 
-  void _handleNegocios() {
-    // Lógica para "Negocios"
+  void _handleEmprendimientos() {
+    print('🏪 HomeController: Navegando a pantalla de emprendedores...');
+    Get.toNamed(AppRoutes.EMPRENDEDORES);
   }
 
   void _handleServicios() {
@@ -362,28 +373,9 @@ class HomeController extends GetxController {
     // Lógica para "Mi Perfil" - ya manejado por el dropdown
   }
 
-  void _handleEmprendimientos() {
-    Get.snackbar(
-      'Emprendimientos',
-      'Conoce los emprendimientos locales',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFF1565C0).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-    );
-  }
-
   void _handleServiciosBottom() {
-    Get.snackbar(
-      'Servicios',
-      'Servicios turísticos disponibles',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFF7B1FA2).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-    );
+    print('🔄 HomeController: Navegando a pantalla de servicios...');
+    Get.toNamed(AppRoutes.SERVICES_CAPACHICA);
   }
 
   void _handleEventos() {

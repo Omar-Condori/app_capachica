@@ -168,18 +168,24 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                 const SizedBox(height: 8),
                 ...controller.emprendedores.map((emp) => Card(
                   child: ListTile(
-                    leading: emp.imagenUrl != null && emp.imagenUrl!.isNotEmpty
-                        ? CircleAvatar(backgroundImage: NetworkImage(emp.imagenUrl!))
+                    leading: emp.imagen != null && emp.imagen!.isNotEmpty
+                        ? CircleAvatar(backgroundImage: NetworkImage(emp.imagen!))
                         : CircleAvatar(child: Icon(Icons.person)),
                     title: Text(emp.nombre),
-                    subtitle: Text(emp.categoria ?? ''),
-                    trailing: emp.rating != null ? Row(
+                    subtitle: Text(emp.tipoServicio),
+                    trailing: emp.estado ? Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 18),
-                        Text(emp.rating!.toStringAsFixed(1)),
+                        Icon(Icons.check_circle, color: Colors.green, size: 18),
+                        Text('Activo'),
                       ],
-                    ) : null,
+                    ) : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cancel, color: Colors.red, size: 18),
+                        Text('Inactivo'),
+                      ],
+                    ),
                   ),
                 )),
               ],

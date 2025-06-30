@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/register_controller.dart';
+import 'package:get_storage/get_storage.dart';
 
 class RegisterScreen extends GetView<RegisterController> {
   @override
@@ -50,7 +51,16 @@ class RegisterScreen extends GetView<RegisterController> {
                 children: [
                   // Flecha de retroceso
                   GestureDetector(
-                    onTap: () => Get.back(),
+                    onTap: () {
+                      final box = GetStorage();
+                      final pendingRoute = box.read('pending_route') as String?;
+                      if (pendingRoute != null) {
+                        box.remove('pending_route');
+                        Get.offAllNamed(pendingRoute);
+                      } else {
+                        Get.back();
+                      }
+                    },
                     child: Container(
                       margin: EdgeInsets.only(top: 8),
                       padding: EdgeInsets.all(12),
@@ -111,8 +121,9 @@ class RegisterScreen extends GetView<RegisterController> {
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
-                            if (value?.isEmpty ?? true) return 'Ingresa tu email';
-                            if (!GetUtils.isEmail(value!)) return 'Email inválido';
+                            final email = value?.trim().toLowerCase() ?? '';
+                            if (email.isEmpty) return 'Ingresa tu email';
+                            if (!GetUtils.isEmail(email)) return 'Email inválido';
                             return null;
                           },
                         ),

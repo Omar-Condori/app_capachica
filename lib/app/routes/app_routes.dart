@@ -10,4 +10,8 @@ abstract class AppRoutes {
   static const RESUMEN = '/resumen';
   static const PLANES = '/planes';
   static const PLAN_DETALLE = '/plan-detalle';
+  static const CARRITO = '/carrito';
+  static const MIS_RESERVAS = '/mis-reservas';
+  static const EMPRENDEDORES = '/emprendedores';
+  static const EMPRENDEDOR_DETALLE = '/emprendedores/detail';
 }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../controllers/login_controller.dart';
 import '../../../routes/app_routes.dart';
+import 'package:get_storage/get_storage.dart';
 
 class LoginScreen extends GetView<LoginController> {
   @override
@@ -110,8 +111,9 @@ class LoginScreen extends GetView<LoginController> {
                         icon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value?.isEmpty ?? true) return 'Ingresa tu email';
-                          if (!GetUtils.isEmail(value!)) return 'Email inválido';
+                          final email = value?.trim().toLowerCase() ?? '';
+                          if (email.isEmpty) return 'Ingresa tu email';
+                          if (!GetUtils.isEmail(email)) return 'Email inválido';
                           return null;
                         },
                       ),

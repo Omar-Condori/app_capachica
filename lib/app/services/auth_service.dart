@@ -11,6 +11,7 @@ class AuthService extends GetxService {
   
   final currentUser = Rxn<User>();
   final token = Rxn<String>();
+  final isLoggedInRx = false.obs;
 
   bool get isLoggedIn => token.value != null;
   
@@ -21,6 +22,15 @@ class AuthService extends GetxService {
   void setBaseUrl(String url) {
     _baseUrl = url;
     print('[AuthService] URL del backend cambiada a: $_baseUrl');
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    ever(token, (_) {
+      isLoggedInRx.value = token.value != null;
+    });
+    isLoggedInRx.value = token.value != null;
   }
 
   Future<AuthService> init() async {

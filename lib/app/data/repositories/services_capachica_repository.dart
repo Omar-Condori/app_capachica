@@ -9,4 +9,16 @@ class ServicesCapachicaRepository {
   Future<List<ServicioCapachica>> getServicios() async {
     return await provider.fetchServicios();
   }
+
+  Future<ServicioCapachica> getServicioById(int id) async {
+    return await provider.fetchServicioById(id);
+  }
+
+  Future<List<ServicioCapachica>> getServiciosByCategoria(int categoriaId) async {
+    return await provider.fetchServiciosByCategoria(categoriaId);
+  }
+
+  Future<List<ServicioCapachica>> getServiciosByEmprendedor(int emprendedorId) async {
+    return await provider.fetchServiciosByEmprendedor(emprendedorId);
+  }
 } 

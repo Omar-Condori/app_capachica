@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../services/auth_service.dart';
+import 'package:get_storage/get_storage.dart';
 
 class LoginController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
@@ -20,42 +21,13 @@ class LoginController extends GetxController {
     if (!formKey.currentState!.validate()) return;
 
     isLoading.value = true;
-    print('[LoginController] Iniciando proceso de login.');
-    
     try {
-      // Probar formatos de respuesta para debugging
-      await _authService.testResponseFormats();
-      
-      // Buscar la URL del backend
-      print('[LoginController] Buscando URL del backend...');
-      final backendUrl = await _authService.findBackendUrl();
-      
-      if (backendUrl == null) {
-        throw 'No se pudo encontrar el backend. Verifica que esté ejecutándose y sea accesible desde la red.';
-      }
-      
-      print('[LoginController] Backend encontrado en: $backendUrl');
-      
-      // Probar la conectividad
-      print('[LoginController] Probando conectividad con el backend...');
-      final isConnected = await _authService.testConnection();
-      
-      if (!isConnected) {
-        throw 'No se pudo conectar con el servidor en $backendUrl';
-      }
-      
-      print('[LoginController] Conectividad OK, procediendo con login...');
-      
+      final email = emailController.text.trim().toLowerCase();
       final response = await _authService.login(
-        emailController.text.trim(),
+        email,
         passwordController.text,
       );
 
-      // Si llegamos aquí, el login fue exitoso y el token existe.
-      print('[LoginController] Login exitoso. Respuesta del servicio recibida.');
-      print('[LoginController] Token: ${response.token}');
-      print('[LoginController] Usuario: ${response.user?.name}');
-      
       Get.rawSnackbar(
         message: response.message ?? 'Inicio de sesión exitoso',
         backgroundColor: Colors.green,
@@ -64,11 +36,17 @@ class LoginController extends GetxController {
         duration: Duration(seconds: 3),
       );
 
-      // Navegamos a Home tras login exitoso.
-      Get.offAllNamed('/home');
-
+      // Redirección inteligente tras login
+      final box = GetStorage();
+      final pendingRoute = box.read('pending_route') as String?;
+      if (pendingRoute != null) {
+        box.remove('pending_route');
+        // Navegar a la ruta pendiente (detalle del servicio)
+        Get.offAllNamed(pendingRoute);
+      } else {
+        Get.offAllNamed('/home');
+      }
     } catch (e) {
-      print('[LoginController] Excepción capturada. Mostrando error al usuario: $e');
       Get.snackbar(
         'Error de Login',
         e.toString(),

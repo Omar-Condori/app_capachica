@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../data/models/services_capachica_model.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/reserva_service.dart';
+import '../../../core/widgets/auth_redirect_dialog.dart';
+import '../../../data/models/reserva_model.dart';
+import 'package:get_storage/get_storage.dart';
 
-class ServiceDetailScreen extends StatelessWidget {
+class ServiceDetailScreen extends StatefulWidget {
   final ServicioCapachica servicio;
   const ServiceDetailScreen({Key? key, required this.servicio}) : super(key: key);
 
+  @override
+  State<ServiceDetailScreen> createState() => _ServiceDetailScreenState();
+}
+
+class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   String capitalizeFirst(String s) {
     if (s.isEmpty) return s;
     return s[0].toUpperCase() + s.substring(1).toLowerCase();
@@ -13,10 +24,13 @@ class ServiceDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Get.find<AuthService>();
+    final isLoggedIn = authService.isLoggedIn;
+
     // Imagen principal
     String? imagenUrl;
     try {
-      final imgs = servicio.emprendedor.imagenes;
+      final imgs = widget.servicio.emprendedor.imagenes;
       List<String> lista = [];
       
       if (imgs != null && imgs.isNotEmpty) {
@@ -51,14 +65,18 @@ class ServiceDetailScreen extends StatelessWidget {
       imagenUrl = 'https://via.placeholder.com/600x300.png?text=Capachica';
     }
 
-    final categoria = servicio.categorias.isNotEmpty ? servicio.categorias[0].nombre : 'Servicio';
+    final categoria = widget.servicio.categorias.isNotEmpty ? widget.servicio.categorias[0].nombre : 'Servicio';
     final categoriaColor = Colors.orange;
-    final dias = servicio.horarios.map((h) => capitalizeFirst(h.diaSemana)).toSet().toList();
+    final dias = widget.servicio.horarios.map((h) => capitalizeFirst(h.diaSemana)).toSet().toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(servicio.nombre),
+        title: Text(widget.servicio.nombre),
         backgroundColor: Colors.orange,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
         actions: [
           const ThemeToggleButton(),
         ],
@@ -109,30 +127,30 @@ class ServiceDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          servicio.estado ? 'Disponible' : 'No disponible',
+                          widget.servicio.estado ? 'Disponible' : 'No disponible',
                           style: TextStyle(color: Colors.green[900], fontWeight: FontWeight.bold, fontSize: 13),
                         ),
                       ),
                       Spacer(),
-                      Text('S/. ${servicio.precioReferencial}', style: TextStyle(color: Colors.orange[800], fontWeight: FontWeight.bold, fontSize: 22)),
+                      Text('S/. ${widget.servicio.precioReferencial}', style: TextStyle(color: Colors.orange[800], fontWeight: FontWeight.bold, fontSize: 22)),
                     ],
                   ),
                   SizedBox(height: 12),
-                  Text(servicio.nombre, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
+                  Text(widget.servicio.nombre, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22)),
                   SizedBox(height: 6),
-                  Text(servicio.descripcion, style: TextStyle(fontSize: 15, color: Colors.grey[800])),
+                  Text(widget.servicio.descripcion, style: TextStyle(fontSize: 15, color: Colors.grey[800])),
                   SizedBox(height: 16),
                   Row(
                     children: [
                       Icon(Icons.people, color: Colors.orange, size: 20),
                       SizedBox(width: 6),
                       Text('Capacidad: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                      Text('${servicio.capacidad} personas'),
+                      Text('${widget.servicio.capacidad} personas'),
                       SizedBox(width: 18),
                       Icon(Icons.location_on, color: Colors.orange, size: 20),
                       SizedBox(width: 6),
                       Text('Ubicación: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                      Expanded(child: Text(servicio.ubicacionReferencia, maxLines: 2, overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text(widget.servicio.ubicacionReferencia, maxLines: 2, overflow: TextOverflow.ellipsis)),
                     ],
                   ),
                   SizedBox(height: 18),
@@ -150,9 +168,9 @@ class ServiceDetailScreen extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(servicio.emprendedor.nombre, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                            Text(servicio.emprendedor.tipoServicio, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
-                            Text(servicio.emprendedor.ubicacion, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                            Text(widget.servicio.emprendedor.nombre, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                            Text(widget.servicio.emprendedor.tipoServicio, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                            Text(widget.servicio.emprendedor.ubicacion, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                           ],
                         ),
                         Spacer(),
@@ -167,7 +185,7 @@ class ServiceDetailScreen extends StatelessWidget {
                   Wrap(
                     spacing: 10,
                     runSpacing: 8,
-                    children: servicio.horarios.map((h) => Container(
+                    children: widget.servicio.horarios.map((h) => Container(
                       padding: EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.green[50],
@@ -210,16 +228,16 @@ class ServiceDetailScreen extends StatelessWidget {
                       ),
                       SizedBox(width: 16),
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: Obx(() => ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             padding: EdgeInsets.symmetric(vertical: 14),
                           ),
                           icon: Icon(Icons.login, color: Colors.white),
-                          label: Text('Reservar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          onPressed: () {},
-                        ),
+                          label: Text(authService.isLoggedInRx.value ? 'Confirmar Reserva' : 'Reservar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                          onPressed: () => _handleReservar(context, authService.isLoggedInRx.value),
+                        )),
                       ),
                     ],
                   ),
@@ -229,6 +247,117 @@ class ServiceDetailScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _handleReservar(BuildContext context, bool isLoggedIn) async {
+    final authService = Get.find<AuthService>();
+    final reservaService = Get.find<ReservaService>();
+    final box = GetStorage();
+    final currentRoute = '/services-capachica/detail/${widget.servicio.id}';
+
+    if (!isLoggedIn) {
+      // Guardar ruta pendiente y mostrar diálogo de login
+      box.write('pending_route', currentRoute);
+      Get.dialog(AuthRedirectDialog(
+        onLoginPressed: () {
+          Get.offAllNamed('/login');
+        },
+        onRegisterPressed: () {
+          Get.offAllNamed('/register');
+        },
+      ));
+      return;
+    }
+
+    // Mostrar diálogo de confirmación de reserva
+    final fechaController = TextEditingController(text: DateTime.now().toIso8601String().split('T')[0]);
+    final horaInicioController = TextEditingController(text: '09:00');
+    final horaFinController = TextEditingController(text: '10:00');
+    final notasController = TextEditingController();
+    final cantidadController = TextEditingController(text: '1');
+    final duracionController = TextEditingController(text: '60');
+
+    await Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Confirmar Reserva'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: fechaController,
+                decoration: InputDecoration(labelText: 'Fecha (YYYY-MM-DD)'),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: horaInicioController,
+                decoration: InputDecoration(labelText: 'Hora Inicio (HH:MM)'),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: horaFinController,
+                decoration: InputDecoration(labelText: 'Hora Fin (HH:MM)'),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: cantidadController,
+                decoration: InputDecoration(labelText: 'Cantidad'),
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: duracionController,
+                decoration: InputDecoration(labelText: 'Duración (minutos)'),
+                keyboardType: TextInputType.number,
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: notasController,
+                decoration: InputDecoration(labelText: 'Notas (opcional)'),
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                // Agregar al carrito
+                final request = AgregarAlCarritoRequest(
+                  servicioId: widget.servicio.id,
+                  emprendedorId: widget.servicio.emprendedorId,
+                  fechaInicio: fechaController.text,
+                  fechaFin: fechaController.text,
+                  horaInicio: horaInicioController.text,
+                  horaFin: horaFinController.text,
+                  duracionMinutos: int.tryParse(duracionController.text) ?? 60,
+                  cantidad: int.tryParse(cantidadController.text) ?? 1,
+                  notasCliente: notasController.text.isNotEmpty ? notasController.text : null,
+                );
+                await reservaService.agregarAlCarrito(request);
+                // Confirmar reserva
+                await reservaService.confirmarReserva(ConfirmarReservaRequest(
+                  notas: notasController.text.isNotEmpty ? notasController.text : null,
+                  metodoPago: 'efectivo',
+                ));
+                Get.back();
+                Get.snackbar('¡Reserva exitosa!', 'Tu reserva ha sido confirmada.', backgroundColor: Colors.green, colorText: Colors.white);
+                // No navegar a ningún lado, quedarse en la pantalla
+              } catch (e) {
+                Get.snackbar('Error', 'No se pudo completar la reserva: $e', backgroundColor: Colors.red, colorText: Colors.white);
+              }
+            },
+            child: Text('Confirmar Reserva'),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:get_storage/get_storage.dart';
 import '../../../services/auth_service.dart';
 import '../../../data/models/login_model.dart';
 import '../../../routes/app_routes.dart';
@@ -68,7 +69,7 @@ class RegisterController extends GetxController {
     try {
       final request = RegisterRequest(
         name: nameController.text,
-        email: emailController.text,
+        email: emailController.text.trim().toLowerCase(),
         password: passwordController.text,
         passwordConfirmation: passwordConfirmationController.text,
         phone: phoneController.text,
@@ -89,8 +90,14 @@ class RegisterController extends GetxController {
         duration: const Duration(seconds: 5),
       );
 
-      Get.offNamed(AppRoutes.LOGIN);
-
+      final box = GetStorage();
+      final pendingRoute = box.read('pending_route');
+      if (pendingRoute != null) {
+        box.remove('pending_route');
+        Get.offAllNamed(pendingRoute);
+      } else {
+        Get.offAllNamed('/home');
+      }
     } catch (e) {
       Get.snackbar(
         'Error de Registro',
