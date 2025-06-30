@@ -77,6 +77,9 @@ class HomeController extends GetxController {
       case 'Emprendimientos':
         _handleEmprendimientos();
         break;
+      case 'Eventos':
+        _handleEventos();
+        break;
       case 'Servicios':
         _handleServicios();
         break;
@@ -379,15 +382,8 @@ class HomeController extends GetxController {
   }
 
   void _handleEventos() {
-    Get.snackbar(
-      'Eventos',
-      'Próximos eventos en Capachica',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFFE65100).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-    );
+    print('🏷️ HomeController: Navegando a pantalla de eventos...');
+    Get.toNamed(AppRoutes.EVENTOS);
   }
 
   void _handlePlanesBottom() {

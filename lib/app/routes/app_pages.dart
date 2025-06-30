@@ -25,6 +25,10 @@ import '../modules/emprendedores/bindings/emprendedores_binding.dart';
 import '../modules/emprendedores/views/emprendedores_screen.dart';
 import '../modules/emprendedores/views/emprendedor_detail_screen.dart';
 import '../modules/emprendedores/controllers/emprendedores_controller.dart';
+import '../modules/eventos/bindings/eventos_binding.dart';
+import '../modules/eventos/views/eventos_screen.dart';
+import '../modules/eventos/views/evento_detail_screen.dart';
+import '../modules/eventos/controllers/eventos_controller.dart';
 import 'app_routes.dart';
 
 class FadeScaleTransition extends CustomTransition {
@@ -205,6 +209,38 @@ class AppPages {
       transitionDuration: const Duration(milliseconds: 400),
       customTransition: FadeScaleTransition(),
     ),
+    GetPage(
+      name: AppRoutes.EVENTOS,
+      page: () => EventosScreen(),
+      binding: EventosBinding(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
+    GetPage(
+      name: '/eventos/detail/:id',
+      page: () {
+        final id = int.tryParse(Get.parameters['id'] ?? '') ?? 0;
+        final controller = Get.find<EventosController>();
+        controller.loadEventoDetalle(id);
+        controller.loadEventosEmprendedor(controller.eventoSeleccionado.value?.emprendedorId ?? 0);
+        return EventoDetailScreen();
+      },
+      binding: EventosBinding(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
+    GetPage(
+      name: '/eventos/emprendedor/:emprendedorId',
+      page: () {
+        final emprendedorId = int.tryParse(Get.parameters['emprendedorId'] ?? '') ?? 0;
+        final controller = Get.find<EventosController>();
+        controller.loadEventosEmprendedor(emprendedorId);
+        return EventosScreen();
+      },
+      binding: EventosBinding(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
   ];
 }
 
@@ -220,6 +256,7 @@ abstract class Routes {
   static const PLAN_DETALLE = _Paths.PLAN_DETALLE;
   static const MIS_RESERVAS = _Paths.MIS_RESERVAS;
   static const EMPRENDEDORES = _Paths.EMPRENDEDORES;
+  static const EVENTOS = _Paths.EVENTOS;
 }
 
 abstract class _Paths {
@@ -234,4 +271,5 @@ abstract class _Paths {
   static const PLAN_DETALLE = '/plan-detalle';
   static const MIS_RESERVAS = '/mis-reservas';
   static const EMPRENDEDORES = '/emprendedores';
+  static const EVENTOS = '/eventos';
 }
