@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
+import '../../../core/widgets/cart_bottom_sheet.dart';
+import '../../../core/controllers/cart_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
   @override
@@ -54,12 +56,57 @@ class HomeScreen extends GetView<HomeController> {
                 Container(
                   alignment: Alignment.topRight,
                   margin: EdgeInsets.only(top: 8, right: 16),
-                  child: IconButton(
-                    icon: Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 32),
-                    onPressed: () {
-                      // Aquí puedes agregar funcionalidad después
-                    },
-                  ),
+                  child: Obx(() {
+                    final cartController = Get.find<CartController>();
+                    final count = cartController.reservas.length;
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 32),
+                          onPressed: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                              ),
+                              builder: (_) => CartBottomSheet(
+                                reservas: cartController.reservas,
+                                onEliminar: cartController.eliminarReserva,
+                                onEditar: cartController.editarReserva,
+                                onConfirmar: cartController.confirmarReservas,
+                              ),
+                            );
+                          },
+                        ),
+                        if (count > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
                 ),
                 Expanded(
                   child: Column(

@@ -7,6 +7,8 @@ import 'package:get_storage/get_storage.dart';
 import '../../../services/auth_service.dart';
 import '../../../data/models/login_model.dart';
 import '../../../routes/app_routes.dart';
+import '../../../core/controllers/cart_controller.dart';
+import '../../../core/widgets/cart_bottom_sheet.dart';
 
 class RegisterController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
@@ -95,6 +97,23 @@ class RegisterController extends GetxController {
       if (pendingRoute != null) {
         box.remove('pending_route');
         Get.offAllNamed(pendingRoute);
+        if (pendingRoute.startsWith('/services-capachica/detail/')) {
+          Future.delayed(const Duration(milliseconds: 600), () {
+            final cartController = Get.find<CartController>();
+            Get.bottomSheet(
+              CartBottomSheet(
+                reservas: cartController.reservas,
+                onEliminar: cartController.eliminarReserva,
+                onEditar: cartController.editarReserva,
+                onConfirmar: cartController.confirmarReservas,
+              ),
+              isScrollControlled: true,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+            );
+          });
+        }
       } else {
         Get.offAllNamed('/home');
       }

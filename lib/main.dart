@@ -7,6 +7,7 @@ import 'app/core/theme/app_theme.dart';
 import 'app/core/controllers/theme_controller.dart';
 import 'package:app_capachica/app/services/auth_service.dart';
 import 'package:app_capachica/app/services/reserva_service.dart';
+import 'app/core/controllers/cart_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ void main() async {
   
   // Inicializar el controlador de tema
   Get.put(ThemeController());
+
+  // Inicializar el controlador global del carrito
+  Get.put(CartController());
 
   runApp(MyApp());
 }

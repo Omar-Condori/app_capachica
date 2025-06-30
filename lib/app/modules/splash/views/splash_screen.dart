@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../controllers/splash_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
+import '../../../core/widgets/cart_bottom_sheet.dart';
+import '../../../core/controllers/cart_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -89,6 +91,25 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               backgroundColor: Colors.transparent,
               elevation: 0,
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart_outlined),
+                  onPressed: () {
+                    final cartController = Get.find<CartController>();
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      builder: (_) => CartBottomSheet(
+                        reservas: cartController.reservas,
+                        onEliminar: cartController.eliminarReserva,
+                        onEditar: cartController.editarReserva,
+                        onConfirmar: cartController.confirmarReservas,
+                      ),
+                    );
+                  },
+                ),
                 const ThemeToggleButton(),
               ],
             ),

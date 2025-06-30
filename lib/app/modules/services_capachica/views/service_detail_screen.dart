@@ -9,6 +9,8 @@ import '../../../data/models/reserva_model.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../../core/widgets/cart_bottom_sheet.dart';
+import '../../../core/controllers/cart_controller.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServicioCapachica servicio;
@@ -80,6 +82,57 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           onPressed: () => Get.back(),
         ),
         actions: [
+          Obx(() {
+            final cartController = Get.find<CartController>();
+            final count = cartController.reservas.length;
+            return Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart_outlined),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      builder: (_) => CartBottomSheet(
+                        reservas: cartController.reservas,
+                        onEliminar: cartController.eliminarReserva,
+                        onEditar: cartController.editarReserva,
+                        onConfirmar: cartController.confirmarReservas,
+                      ),
+                    );
+                  },
+                ),
+                if (count > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Text(
+                        '$count',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
           const ThemeToggleButton(),
         ],
       ),
@@ -290,85 +343,182 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     final cantidadController = TextEditingController(text: '1');
     final duracionController = TextEditingController(text: '60');
 
+    bool horarioDisponible = false;
+    String disponibilidadMensaje = '';
+    bool consultado = false;
+
     await Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Confirmar Reserva'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: fechaController,
-                decoration: InputDecoration(labelText: 'Fecha (YYYY-MM-DD)'),
+      StatefulBuilder(
+        builder: (context, setState) {
+          void resetDisponibilidad() {
+            setState(() {
+              consultado = false;
+              horarioDisponible = false;
+              disponibilidadMensaje = '';
+            });
+          }
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text('Confirmar Reserva'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: fechaController,
+                    decoration: InputDecoration(labelText: 'Fecha (YYYY-MM-DD)'),
+                    onChanged: (_) => resetDisponibilidad(),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: horaInicioController,
+                    decoration: InputDecoration(labelText: 'Hora Inicio (HH:MM)'),
+                    onChanged: (_) => resetDisponibilidad(),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: horaFinController,
+                    decoration: InputDecoration(labelText: 'Hora Fin (HH:MM)'),
+                    onChanged: (_) => resetDisponibilidad(),
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: cantidadController,
+                    decoration: InputDecoration(labelText: 'Cantidad'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: duracionController,
+                    decoration: InputDecoration(labelText: 'Duración (minutos)'),
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: 8),
+                  TextField(
+                    controller: notasController,
+                    decoration: InputDecoration(labelText: 'Notas (opcional)'),
+                    maxLines: 2,
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () async {
+                      setState(() {
+                        consultado = false;
+                        disponibilidadMensaje = '';
+                        horarioDisponible = false;
+                      });
+                      List<ReservaModel> reservas = [];
+                      try {
+                        reservas = await reservaService.obtenerMisReservas();
+                      } catch (e) {
+                        // Si hay error (404, etc), asumimos que no hay reservas y el horario está disponible
+                        setState(() {
+                          consultado = true;
+                          horarioDisponible = true;
+                          disponibilidadMensaje = 'Horario disponible';
+                        });
+                        return;
+                      }
+                      final fecha = fechaController.text.trim();
+                      final horaInicio = horaInicioController.text.trim();
+                      final horaFin = horaFinController.text.trim();
+                      bool disponible = true;
+                      for (final r in reservas) {
+                        if (r.fechaInicio == fecha) {
+                          // Si hay cruce de horas
+                          if (!(horaFin.compareTo(r.horaInicio) <= 0 || horaInicio.compareTo(r.horaFin) >= 0)) {
+                            disponible = false;
+                            break;
+                          }
+                        }
+                      }
+                      setState(() {
+                        consultado = true;
+                        horarioDisponible = disponible;
+                        disponibilidadMensaje = disponible ? 'Horario disponible' : 'Horario no disponible';
+                      });
+                    },
+                    child: Text('Ver disponibilidad de horarios'),
+                  ),
+                  if (consultado)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        disponibilidadMensaje,
+                        style: TextStyle(
+                          color: horarioDisponible ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              SizedBox(height: 8),
-              TextField(
-                controller: horaInicioController,
-                decoration: InputDecoration(labelText: 'Hora Inicio (HH:MM)'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text('Cancelar'),
               ),
-              SizedBox(height: 8),
-              TextField(
-                controller: horaFinController,
-                decoration: InputDecoration(labelText: 'Hora Fin (HH:MM)'),
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: cantidadController,
-                decoration: InputDecoration(labelText: 'Cantidad'),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: duracionController,
-                decoration: InputDecoration(labelText: 'Duración (minutos)'),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 8),
-              TextField(
-                controller: notasController,
-                decoration: InputDecoration(labelText: 'Notas (opcional)'),
-                maxLines: 2,
+              ElevatedButton(
+                onPressed: (consultado && horarioDisponible)
+                    ? () async {
+                        try {
+                          final cartController = Get.find<CartController>();
+                          final reserva = ReservaModel(
+                            id: DateTime.now().millisecondsSinceEpoch, // ID temporal
+                            servicioId: widget.servicio.id,
+                            emprendedorId: widget.servicio.emprendedorId,
+                            fechaInicio: fechaController.text,
+                            fechaFin: fechaController.text,
+                            horaInicio: horaInicioController.text,
+                            horaFin: horaFinController.text,
+                            duracionMinutos: int.tryParse(duracionController.text) ?? 60,
+                            cantidad: int.tryParse(cantidadController.text) ?? 1,
+                            notasCliente: notasController.text.isNotEmpty ? notasController.text : null,
+                            estado: 'pendiente',
+                            metodoPago: null,
+                            precioTotal: double.tryParse(widget.servicio.precioReferencial) ?? 0,
+                            createdAt: DateTime.now(),
+                            servicio: ServicioReserva(
+                              id: widget.servicio.id,
+                              nombre: widget.servicio.nombre,
+                              descripcion: widget.servicio.descripcion,
+                              precioReferencial: double.tryParse(widget.servicio.precioReferencial) ?? 0,
+                              imagenUrl: null,
+                            ),
+                            emprendedor: EmprendedorReserva(
+                              id: widget.servicio.emprendedor.id,
+                              nombre: widget.servicio.emprendedor.nombre,
+                              tipoServicio: widget.servicio.emprendedor.tipoServicio,
+                            ),
+                          );
+                          cartController.agregarReserva(reserva);
+                          Get.back();
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            Get.bottomSheet(
+                              CartBottomSheet(
+                                reservas: cartController.reservas,
+                                onEliminar: cartController.eliminarReserva,
+                                onEditar: cartController.editarReserva,
+                                onConfirmar: cartController.confirmarReservas,
+                              ),
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                              ),
+                            );
+                          });
+                          Get.snackbar('¡Reserva agregada!', 'Tu reserva fue añadida al carrito.', backgroundColor: Colors.green, colorText: Colors.white);
+                        } catch (e) {
+                          Get.snackbar('Error', 'No se pudo agregar la reserva: $e', backgroundColor: Colors.red, colorText: Colors.white);
+                        }
+                      }
+                    : null,
+                child: Text('Agregar al Carrito'),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                // Agregar al carrito
-                final request = AgregarAlCarritoRequest(
-                  servicioId: widget.servicio.id,
-                  emprendedorId: widget.servicio.emprendedorId,
-                  fechaInicio: fechaController.text,
-                  fechaFin: fechaController.text,
-                  horaInicio: horaInicioController.text,
-                  horaFin: horaFinController.text,
-                  duracionMinutos: int.tryParse(duracionController.text) ?? 60,
-                  cantidad: int.tryParse(cantidadController.text) ?? 1,
-                  notasCliente: notasController.text.isNotEmpty ? notasController.text : null,
-                );
-                await reservaService.agregarAlCarrito(request);
-                // Confirmar reserva
-                await reservaService.confirmarReserva(ConfirmarReservaRequest(
-                  notas: notasController.text.isNotEmpty ? notasController.text : null,
-                  metodoPago: 'efectivo',
-                ));
-                Get.back();
-                Get.snackbar('¡Reserva exitosa!', 'Tu reserva ha sido confirmada.', backgroundColor: Colors.green, colorText: Colors.white);
-                // No navegar a ningún lado, quedarse en la pantalla
-              } catch (e) {
-                Get.snackbar('Error', 'No se pudo completar la reserva: $e', backgroundColor: Colors.red, colorText: Colors.white);
-              }
-            },
-            child: Text('Confirmar Reserva'),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
