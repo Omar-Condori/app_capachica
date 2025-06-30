@@ -6,6 +6,7 @@ import '../../../core/widgets/theme_toggle_button.dart';
 import '../../../core/widgets/apple_style_widgets.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
+import '../../../core/widgets/cart_icon_button.dart';
 
 class ResumenScreen extends GetView<ResumenController> {
   const ResumenScreen({super.key});
@@ -34,57 +35,7 @@ class ResumenScreen extends GetView<ResumenController> {
           onPressed: () => Get.back(),
         ),
         actions: [
-          Obx(() {
-            final cartController = Get.find<CartController>();
-            final count = cartController.reservas.length;
-            return Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      builder: (_) => CartBottomSheet(
-                        reservas: cartController.reservas,
-                        onEliminar: cartController.eliminarReserva,
-                        onEditar: cartController.editarReserva,
-                        onConfirmar: cartController.confirmarReservas,
-                      ),
-                    );
-                  },
-                ),
-                if (count > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Text(
-                        '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }),
+          CartIconButton(),
           IconButton(
             icon: Icon(
               Icons.refresh_rounded,
