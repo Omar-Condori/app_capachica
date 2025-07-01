@@ -14,6 +14,10 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Get.back(),
+        ),
         title: Text('Detalle del Plan'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
