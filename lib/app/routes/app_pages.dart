@@ -30,6 +30,7 @@ import '../modules/eventos/views/eventos_screen.dart';
 import '../modules/eventos/views/evento_detail_screen.dart';
 import '../modules/eventos/controllers/eventos_controller.dart';
 import 'app_routes.dart';
+import '../modules/profile/views/profile_screen.dart';
 
 class FadeScaleTransition extends CustomTransition {
   @override
@@ -240,6 +241,10 @@ class AppPages {
       binding: EventosBinding(),
       transitionDuration: const Duration(milliseconds: 400),
       customTransition: FadeScaleTransition(),
+    ),
+    GetPage(
+      name: '/profile',
+      page: () => ProfileScreen(),
     ),
   ];
 }

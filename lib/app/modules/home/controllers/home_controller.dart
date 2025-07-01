@@ -113,17 +113,7 @@ class HomeController extends GetxController {
   void onMyAccountTap() {
     hideProfileDropdown();
     print('Mi Cuenta presionado');
-    Get.snackbar(
-      'Mi Cuenta',
-      'Accediendo a tu perfil...',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Color(0xFF1976D2).withOpacity(0.95),
-      colorText: Colors.white,
-      borderRadius: 12,
-      margin: EdgeInsets.all(16),
-      icon: Icon(Icons.account_circle, color: Colors.white),
-    );
-    // Get.toNamed('/profile');
+    Get.toNamed('/profile');
   }
 
   void onMyReservationsTap() {

@@ -1,8 +1,26 @@
 import 'package:get/get.dart';
 import '../../data/models/reserva_model.dart';
+import '../../services/reserva_service.dart';
 
 class CartController extends GetxController {
   var reservas = <ReservaModel>[].obs;
+  final ReservaService _reservaService = Get.find<ReservaService>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    sincronizarCarritoConBackend();
+  }
+
+  Future<void> sincronizarCarritoConBackend() async {
+    try {
+      final carritoResponse = await _reservaService.obtenerCarrito();
+      reservas.assignAll(carritoResponse.items);
+    } catch (e) {
+      // Puedes manejar el error si lo deseas
+      print('Error al sincronizar el carrito: $e');
+    }
+  }
 
   void agregarReserva(ReservaModel reserva) {
     reservas.add(reserva);
