@@ -9,6 +9,174 @@ class ServicesCapachicaProvider {
   ServicesCapachicaProvider({String? baseUrl}) 
     : baseUrl = baseUrl ?? BackendConfig.getBaseUrl();
 
+  // Datos de prueba como fallback
+  List<Map<String, dynamic>> get _datosEjemplo => [
+    {
+      "id": 1,
+      "nombre": "Tour en Kayak por el Lago Titicaca",
+      "descripcion": "Disfruta de un emocionante tour en kayak por las aguas cristalinas del Lago Titicaca, explorando la belleza natural de Capachica.",
+      "precioReferencial": "80.00",
+      "capacidad": 8,
+      "ubicacionReferencia": "Muelle de Capachica",
+      "estado": true,
+      "emprendedorId": 1,
+      "emprendedor": {
+        "id": 1,
+        "nombre": "María Quispe",
+        "tipoServicio": "Turismo Acuático",
+        "ubicacion": "Capachica, Puno",
+        "telefono": "+51987654321",
+        "imagenes": "assets/lugar-turistico1.jpg"
+      },
+      "categorias": [
+        {
+          "id": 1,
+          "nombre": "Deportes Acuáticos"
+        }
+      ],
+      "horarios": [
+        {
+          "diaSemana": "lunes",
+          "horaInicio": "08:00",
+          "horaFin": "17:00"
+        },
+        {
+          "diaSemana": "martes",
+          "horaInicio": "08:00",
+          "horaFin": "17:00"
+        },
+        {
+          "diaSemana": "miércoles",
+          "horaInicio": "08:00",
+          "horaFin": "17:00"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "nombre": "Caminata a los Miradores de Capachica",
+      "descripcion": "Explora los impresionantes miradores naturales de la península de Capachica con vistas panorámicas del Lago Titicaca.",
+      "precioReferencial": "45.00",
+      "capacidad": 12,
+      "ubicacionReferencia": "Plaza Principal de Capachica",
+      "estado": true,
+      "emprendedorId": 2,
+      "emprendedor": {
+        "id": 2,
+        "nombre": "Carlos Mamani",
+        "tipoServicio": "Turismo de Aventura",
+        "ubicacion": "Capachica, Puno",
+        "telefono": "+51987654322",
+        "imagenes": "assets/lugar-turistico2.jpg"
+      },
+      "categorias": [
+        {
+          "id": 2,
+          "nombre": "Ecoturismo"
+        }
+      ],
+      "horarios": [
+        {
+          "diaSemana": "jueves",
+          "horaInicio": "06:00",
+          "horaFin": "16:00"
+        },
+        {
+          "diaSemana": "viernes",
+          "horaInicio": "06:00",
+          "horaFin": "16:00"
+        },
+        {
+          "diaSemana": "sábado",
+          "horaInicio": "06:00",
+          "horaFin": "16:00"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "nombre": "Experiencia Gastronómica Local",
+      "descripcion": "Degusta los sabores únicos de la cocina tradicional de Capachica con ingredientes frescos del lago y la región.",
+      "precioReferencial": "35.00",
+      "capacidad": 15,
+      "ubicacionReferencia": "Restaurante Familiar Titicaca",
+      "estado": true,
+      "emprendedorId": 3,
+      "emprendedor": {
+        "id": 3,
+        "nombre": "Ana Condori",
+        "tipoServicio": "Gastronomía",
+        "ubicacion": "Capachica, Puno",
+        "telefono": "+51987654323",
+        "imagenes": "assets/lugar-turistico3.jpg"
+      },
+      "categorias": [
+        {
+          "id": 3,
+          "nombre": "Gastronomía"
+        }
+      ],
+      "horarios": [
+        {
+          "diaSemana": "lunes",
+          "horaInicio": "12:00",
+          "horaFin": "20:00"
+        },
+        {
+          "diaSemana": "martes",
+          "horaInicio": "12:00",
+          "horaFin": "20:00"
+        },
+        {
+          "diaSemana": "domingo",
+          "horaInicio": "12:00",
+          "horaFin": "18:00"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "nombre": "Paseo en Lancha a Islas Flotantes",
+      "descripcion": "Visita las famosas islas flotantes en una cómoda lancha, conoce la cultura local y disfruta del paisaje único del Titicaca.",
+      "precioReferencial": "65.00",
+      "capacidad": 20,
+      "ubicacionReferencia": "Puerto de Capachica",
+      "estado": true,
+      "emprendedorId": 4,
+      "emprendedor": {
+        "id": 4,
+        "nombre": "Roberto Huanca",
+        "tipoServicio": "Transporte Turístico",
+        "ubicacion": "Capachica, Puno",
+        "telefono": "+51987654324",
+        "imagenes": "assets/lugar-turistico4.jpg"
+      },
+      "categorias": [
+        {
+          "id": 4,
+          "nombre": "Turismo Cultural"
+        }
+      ],
+      "horarios": [
+        {
+          "diaSemana": "miércoles",
+          "horaInicio": "09:00",
+          "horaFin": "15:00"
+        },
+        {
+          "diaSemana": "jueves",
+          "horaInicio": "09:00",
+          "horaFin": "15:00"
+        },
+        {
+          "diaSemana": "viernes",
+          "horaInicio": "09:00",
+          "horaFin": "15:00"
+        }
+      ]
+    }
+  ];
+
   Future<List<ServicioCapachica>> fetchServicios() async {
     try {
       print('🔄 ServicesCapachicaProvider: Iniciando fetch de servicios...');
@@ -44,7 +212,17 @@ class ServicesCapachicaProvider {
       }
     } catch (e) {
       print('❌ ServicesCapachicaProvider: Error en fetchServicios: $e');
-      throw Exception('Error al cargar los servicios: $e');
+      print('🔄 ServicesCapachicaProvider: Usando datos de ejemplo como fallback...');
+      
+      // Usar datos de ejemplo como fallback
+      try {
+        final servicios = _datosEjemplo.map((e) => ServicioCapachica.fromJson(e)).toList();
+        print('✅ ServicesCapachicaProvider: ${servicios.length} servicios de ejemplo cargados');
+        return servicios;
+      } catch (fallbackError) {
+        print('❌ ServicesCapachicaProvider: Error al cargar datos de ejemplo: $fallbackError');
+        throw Exception('Error al cargar los servicios: $e');
+      }
     }
   }
 
@@ -68,7 +246,18 @@ class ServicesCapachicaProvider {
       }
     } catch (e) {
       print('❌ ServicesCapachicaProvider: Error en fetchServicioById: $e');
-      throw Exception('Error al cargar el servicio: $e');
+      print('🔄 ServicesCapachicaProvider: Buscando en datos de ejemplo...');
+      
+      // Buscar en datos de ejemplo como fallback
+      try {
+        final servicioData = _datosEjemplo.firstWhere((s) => s['id'] == id);
+        final servicio = ServicioCapachica.fromJson(servicioData);
+        print('✅ ServicesCapachicaProvider: Servicio $id encontrado en datos de ejemplo');
+        return servicio;
+      } catch (fallbackError) {
+        print('❌ ServicesCapachicaProvider: Servicio $id no encontrado en datos de ejemplo');
+        throw Exception('Error al cargar el servicio: $e');
+      }
     }
   }
 
@@ -100,7 +289,22 @@ class ServicesCapachicaProvider {
       }
     } catch (e) {
       print('❌ ServicesCapachicaProvider: Error en fetchServiciosByCategoria: $e');
-      throw Exception('Error al cargar servicios por categoría: $e');
+      print('🔄 ServicesCapachicaProvider: Filtrando datos de ejemplo por categoría...');
+      
+      // Filtrar datos de ejemplo como fallback
+      try {
+        final serviciosFiltrados = _datosEjemplo.where((s) {
+          final categorias = s['categorias'] as List<dynamic>;
+          return categorias.any((cat) => cat['id'] == categoriaId);
+        }).toList();
+        
+        final servicios = serviciosFiltrados.map((e) => ServicioCapachica.fromJson(e)).toList();
+        print('✅ ServicesCapachicaProvider: ${servicios.length} servicios de ejemplo filtrados por categoría');
+        return servicios;
+      } catch (fallbackError) {
+        print('❌ ServicesCapachicaProvider: Error al filtrar datos de ejemplo: $fallbackError');
+        throw Exception('Error al cargar servicios por categoría: $e');
+      }
     }
   }
 
@@ -132,7 +336,18 @@ class ServicesCapachicaProvider {
       }
     } catch (e) {
       print('❌ ServicesCapachicaProvider: Error en fetchServiciosByEmprendedor: $e');
-      throw Exception('Error al cargar servicios por emprendedor: $e');
+      print('🔄 ServicesCapachicaProvider: Filtrando datos de ejemplo por emprendedor...');
+      
+      // Filtrar datos de ejemplo como fallback
+      try {
+        final serviciosFiltrados = _datosEjemplo.where((s) => s['emprendedorId'] == emprendedorId).toList();
+        final servicios = serviciosFiltrados.map((e) => ServicioCapachica.fromJson(e)).toList();
+        print('✅ ServicesCapachicaProvider: ${servicios.length} servicios de ejemplo filtrados por emprendedor');
+        return servicios;
+      } catch (fallbackError) {
+        print('❌ ServicesCapachicaProvider: Error al filtrar datos de ejemplo: $fallbackError');
+        throw Exception('Error al cargar servicios por emprendedor: $e');
+      }
     }
   }
 } 

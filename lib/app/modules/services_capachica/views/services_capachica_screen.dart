@@ -1,40 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/services_capachica_controller.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
-import '../../../core/widgets/modern_service_card.dart';
-import '../../../services/reserva_service.dart';
-import 'service_detail_screen.dart';
-import '../../../core/widgets/cart_bottom_sheet.dart';
-import '../../../core/controllers/cart_controller.dart';
 import '../../../core/widgets/cart_icon_with_badge.dart';
-import '../../../services/auth_service.dart';
-import '../../../data/models/servicio_model.dart';
+import 'service_detail_screen.dart';
+import 'service_card.dart';
 
 class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
   const ServicesCapachicaScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final reservaService = Get.find<ReservaService>();
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: isDark ? Color(0xFF0F1419) : Color(0xFFF8FAFC),
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, color: theme.iconTheme.color),
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
           onPressed: () => Get.back(),
         ),
         title: Text(
-          'Servicios',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
+          'Servicios Capachica',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        elevation: 2,
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        shadowColor: theme.shadowColor.withOpacity(0.08),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
+            ),
+          ),
+        ),
         actions: [
           const CartIconWithBadge(),
           const ThemeToggleButton(),
@@ -43,19 +52,19 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
       body: Column(
         children: [
           // Barra de búsqueda y filtros
-          _buildSearchAndFilters(context),
-
+          _buildSearchAndFilters(context, isDark),
+          
           // Contenido principal
           Expanded(
             child: Obx(() {
               if (controller.isLoading.value) {
-                return _buildLoadingState(context);
+                return _buildLoadingState(isDark);
               } else if (controller.error.isNotEmpty) {
-                return _buildErrorState(context);
+                return _buildErrorState(context, isDark);
               } else if (controller.serviciosFiltrados.isEmpty) {
-                return _buildEmptyState(context);
+                return _buildEmptyState(context, isDark);
               } else {
-                return _buildServicesList(context);
+                return _buildServicesList(context, isDark);
               }
             }),
           ),
@@ -64,64 +73,94 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
     );
   }
 
-  Widget _buildSearchAndFilters(BuildContext context) {
-    final theme = Theme.of(context);
-
+  Widget _buildSearchAndFilters(BuildContext context, bool isDark) {
     return Container(
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: isDark ? Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+            blurRadius: 10,
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Barra de búsqueda
           TextField(
             onChanged: controller.buscarServicios,
+            style: TextStyle(
+              color: isDark ? Colors.white : Color(0xFF1A202C),
+              fontSize: 16,
+            ),
             decoration: InputDecoration(
               hintText: 'Buscar servicios...',
-              prefixIcon: Icon(Icons.search_rounded, color: theme.primaryColor),
+              hintStyle: TextStyle(
+                color: isDark ? Colors.white38 : Colors.grey.shade500,
+                fontSize: 14,
+              ),
+              prefixIcon: Icon(
+                Icons.search_rounded,
+                color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                size: 20,
+              ),
               suffixIcon: Obx(() {
                 if (controller.searchQuery.value.isNotEmpty) {
                   return IconButton(
-                    icon: Icon(Icons.clear_rounded, color: theme.primaryColor),
-                    onPressed: () {
-                      controller.limpiarFiltros();
-                    },
+                    icon: Icon(
+                      Icons.clear_rounded,
+                      color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                      size: 20,
+                    ),
+                    onPressed: controller.limpiarFiltros,
                   );
                 }
                 return const SizedBox.shrink();
               }),
+              filled: true,
+              fillColor: isDark 
+                ? Color(0xFF334155).withValues(alpha: 0.3)
+                : Color(0xFFF8FAFC),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              filled: true,
-              fillColor: theme.inputDecorationTheme.fillColor ??
-                  theme.colorScheme.surface,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: isDark ? Colors.white10 : Colors.grey.shade200,
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                  width: 2,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
 
           // Filtros de categorías
           Obx(() {
             final categorias = controller.getCategoriasUnicas();
             if (categorias.isEmpty) {
-              // Mostrar mensaje cuando no hay categorías disponibles
               return Container(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   'No hay categorías disponibles',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Color(0xFF718096),
+                    fontSize: 14,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -133,7 +172,9 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
               children: [
                 Text(
                   'Filtrar por categoría:',
-                  style: theme.textTheme.titleSmall?.copyWith(
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Color(0xFF374151),
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -144,15 +185,14 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
                     children: [
                       // Botón "Todas"
                       _buildFilterChip(
-                        context,
                         'Todas',
                         controller.categoriaSeleccionada.value == 0,
                         () => controller.limpiarFiltros(),
+                        isDark,
                       ),
                       const SizedBox(width: 8),
                       // Categorías
                       ...categorias.map((categoria) {
-                        // Verificar si esta categoría está seleccionada
                         final isSelected = controller.categoriaSeleccionada.value > 0 &&
                             controller.servicios.any((servicio) =>
                                 servicio.categorias.any((cat) => cat.nombre == categoria && cat.id == controller.categoriaSeleccionada.value));
@@ -160,11 +200,9 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: _buildFilterChip(
-                            context,
                             categoria,
                             isSelected,
                             () {
-                              // Encontrar el ID de la categoría
                               final servicio = controller.servicios.firstWhere(
                                 (s) => s.categorias.any((cat) => cat.nombre == categoria),
                                 orElse: () => controller.servicios.first,
@@ -176,6 +214,7 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
                                 controller.filtrarPorCategoria(categoriaId);
                               }
                             },
+                            isDark,
                           ),
                         );
                       }).toList(),
@@ -190,29 +229,30 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
     );
   }
 
-  Widget _buildFilterChip(BuildContext context, String label, bool isSelected, VoidCallback onTap) {
-    final theme = Theme.of(context);
-
+  Widget _buildFilterChip(String label, bool isSelected, VoidCallback onTap, bool isDark) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.primaryColor
-              : theme.primaryColor.withOpacity(0.1),
+              ? (isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35))
+              : (isDark ? Color(0xFF334155) : Color(0xFFF1F5F9)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? theme.primaryColor
-                : theme.primaryColor.withOpacity(0.3),
+                ? (isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35))
+                : (isDark ? Colors.white10 : Colors.grey.shade300),
             width: 1,
           ),
         ),
         child: Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: isSelected ? Colors.white : theme.primaryColor,
+          style: TextStyle(
+            color: isSelected 
+                ? Colors.white 
+                : (isDark ? Colors.white70 : Color(0xFF374151)),
+            fontSize: 12,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -220,69 +260,48 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
     );
   }
 
-  Widget _buildLoadingState(BuildContext context) {
+  Widget _buildLoadingState(bool isDark) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            color: Theme.of(context).primaryColor,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Cargando servicios...',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
+      child: Container(
+        padding: EdgeInsets.all(24),
+        margin: EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: isDark 
+            ? Color(0xFF2D3748).withValues(alpha: 0.5)
+            : Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: Offset(0, 8),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+          ],
+        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 64,
-              color: Colors.red[300],
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
+              ),
+              strokeWidth: 3,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
-              'Error al cargar servicios',
-              style: theme.textTheme.titleLarge?.copyWith(
+              'Cargando servicios...',
+              style: TextStyle(
+                color: isDark ? Colors.white : Color(0xFF1A202C),
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.red[700],
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
-              controller.error.value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: controller.refreshServicios,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Reintentar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              'Obteniendo servicios disponibles',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Color(0xFF718096),
+                fontSize: 14,
               ),
             ),
           ],
@@ -291,51 +310,107 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-
+  Widget _buildErrorState(BuildContext context, bool isDark) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 64,
-              color: theme.primaryColor.withOpacity(0.5),
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(Icons.error_outline_rounded, size: 48, color: Colors.red),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
-              'No se encontraron servicios',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+              'Error al cargar servicios',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Color(0xFF1A202C),
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              controller.error.value,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : Color(0xFF718096),
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: controller.refreshServicios,
+              icon: Icon(Icons.refresh_rounded, size: 20),
+              label: Text('Reintentar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, bool isDark) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: (isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.search_off_rounded, 
+                size: 48, 
+                color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No se encontraron servicios',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Color(0xFF1A202C),
+              ),
+            ),
+            SizedBox(height: 8),
             Text(
               controller.searchQuery.value.isNotEmpty
                   ? 'Intenta con otros términos de búsqueda'
                   : 'No hay servicios disponibles en este momento',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : Color(0xFF718096),
               ),
               textAlign: TextAlign.center,
             ),
             if (controller.searchQuery.value.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: controller.limpiarFiltros,
-                icon: const Icon(Icons.clear_rounded),
-                label: const Text('Limpiar filtros'),
+                icon: Icon(Icons.clear_rounded, size: 20),
+                label: Text('Limpiar filtros'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
+                  backgroundColor: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ],
@@ -345,34 +420,25 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
     );
   }
 
-  Widget _buildServicesList(BuildContext context) {
+  Widget _buildServicesList(BuildContext context, bool isDark) {
     return RefreshIndicator(
       onRefresh: () async {
         controller.refreshServicios();
       },
+      color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
       child: Obx(() {
         if (controller.serviciosFiltrados.isEmpty) {
-          return _buildEmptyState(context);
+          return _buildEmptyState(context, isDark);
         }
         
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           itemCount: controller.serviciosFiltrados.length,
           itemBuilder: (context, index) {
             final servicio = controller.serviciosFiltrados[index];
-            // Convertir ServicioCapachica a ServicioModel
-            final servicioModel = ServicioModel(
-              id: servicio.id.toString(),
-              emprendedorId: servicio.emprendedor.id.toString(),
-              nombre: servicio.nombre,
-              descripcion: servicio.descripcion,
-              precio: double.tryParse(servicio.precioReferencial) ?? 0.0,
-              imagenUrl: '', // ServicioCapachica no tiene imagenUrl
-              categoria: 'General', // ServicioCapachica no tiene categoria
-            );
             
-            return ModernServiceCard(
-              servicio: servicioModel,
+            return ServiceCard(
+              servicio: servicio,
               onTap: () {
                 Get.to(() => ServiceDetailScreen(servicio: servicio));
               },
@@ -381,53 +447,5 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
         );
       }),
     );
-  }
-}
-
-class CarritoButton extends StatelessWidget {
-  final ReservaService reservaService = Get.find<ReservaService>();
-
-  @override
-  Widget build(BuildContext context) {
-    return Obx(() {
-      if (reservaService.isAuthenticated) {
-        return IconButton(
-          onPressed: () => Get.toNamed('/carrito'),
-          icon: Stack(
-            children: [
-              Icon(
-                Icons.shopping_cart_rounded,
-                color: Theme.of(context).appBarTheme.iconTheme?.color,
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.red,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 12,
-                    minHeight: 12,
-                  ),
-                  child: Text(
-                    '0',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      }
-      return const SizedBox.shrink();
-    });
   }
 }

@@ -7,13 +7,17 @@ import '../../../data/repositories/municipalidad_repository_impl.dart';
 import '../../../domain/repositories/municipalidad_repository.dart';
 import '../../../domain/usecases/get_resumen_usecase.dart';
 
-class HomeController extends GetxController {
+class HomeController extends GetxController with GetSingleTickerProviderStateMixin {
   final AuthService authService = Get.find<AuthService>();
   
   // Servicios y casos de uso para el resumen
   late final MunicipalidadService _municipalidadService;
   late final MunicipalidadRepository _municipalidadRepository;
   late final GetResumenUseCase _getResumenUseCase;
+  
+  // Controlador de animación para el efecto neón
+  late AnimationController _neonAnimationController;
+  late Animation<double> neonAnimation;
 
   String get userDisplayName {
     if (!authService.isLoggedIn) return 'Mi Perfil';
@@ -50,10 +54,28 @@ class HomeController extends GetxController {
     _municipalidadService = MunicipalidadService();
     _municipalidadRepository = MunicipalidadRepositoryImpl(_municipalidadService);
     _getResumenUseCase = GetResumenUseCase(_municipalidadRepository);
+    
+    // Inicializar animación neón
+    _neonAnimationController = AnimationController(
+      duration: Duration(seconds: 4),
+      vsync: this,
+    );
+    
+    neonAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _neonAnimationController,
+      curve: Curves.linear,
+    ));
+    
+    // Iniciar animación en loop
+    _neonAnimationController.repeat();
   }
 
   @override
   void onClose() {
+    _neonAnimationController.dispose();
     _municipalidadService.dispose();
     super.onClose();
   }

@@ -3,232 +3,384 @@ import 'package:get/get.dart';
 import '../controllers/eventos_controller.dart';
 import '../../../data/models/evento_model.dart';
 import 'evento_card.dart';
+import '../../../core/widgets/cart_icon_with_badge.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 
 class EventoDetailScreen extends GetView<EventosController> {
   final Evento? evento;
 
   const EventoDetailScreen({Key? key, this.evento}) : super(key: key);
 
+  // Lista de imágenes de assets para asignar rotativamente
+  static const List<String> _assetImages = [
+    'assets/lugar-turistico1.jpg',
+    'assets/lugar-turistico2.jpg',
+    'assets/lugar-turistico3.jpg',
+    'assets/lugar-turistico4.jpg',
+    'assets/lugar-turistico5.jpg',
+    'assets/lugar-turistico6.jpg',
+    'assets/lugar-turistico-line1-1.jpg',
+    'assets/lugar-turistico-line1-2.jpg',
+    'assets/lugar-turistico-line2-1.jpg',
+    'assets/lugar-turistico-line2-2.jpg',
+    'assets/lugar-turistico-line3-1.jpg',
+    'assets/lugar-turistico-line3-2.jpg',
+    'assets/lugar-turistico-line4-1.jpg',
+    'assets/lugar-turistico-line4-2.jpg',
+    'assets/lugar-turistico-line5-1.jpg',
+    'assets/lugar-turistico-line5-2.jpg',
+  ];
+
+  String _getAssetImage(int index) {
+    return _assetImages[index % _assetImages.length];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: isDark ? Color(0xFF0F1419) : Color(0xFFF8FAFC),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () => Get.back(),
+        ),
+        title: Text(
+          'Detalle del Evento',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share, color: Colors.white),
+            onPressed: () => _shareEvento(evento),
+          ),
+          const CartIconWithBadge(),
+          const ThemeToggleButton(),
+        ],
+      ),
       body: Obx(() {
         if (controller.isLoadingDetalle.value) {
-          return _buildLoadingState(theme);
+          return _buildLoadingState(isDark);
         }
         
         if (controller.errorDetalle.value != null) {
-          return _buildErrorState(theme);
+          return _buildErrorState(isDark);
         }
         
         final evento = this.evento ?? controller.eventoSeleccionado.value;
         if (evento == null) {
-          return _buildNotFoundState(theme);
+          return _buildNotFoundState(isDark);
         }
         
-        return _buildEventoDetail(theme, evento);
+        return _buildEventoDetail(isDark, evento);
       }),
     );
   }
 
-  Widget _buildEventoDetail(ThemeData theme, Evento evento) {
-    return CustomScrollView(
-      slivers: [
-        // AppBar con imagen de fondo
-        SliverAppBar(
-          expandedHeight: 300,
-          pinned: true,
-          backgroundColor: theme.appBarTheme.backgroundColor,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_rounded,
-              color: Colors.white,
-            ),
-            onPressed: () => Get.back(),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.share_rounded,
-                color: Colors.white,
-              ),
-              onPressed: () => _shareEvento(evento),
-            ),
-          ],
-          flexibleSpace: FlexibleSpaceBar(
-            background: _buildHeroImage(theme, evento),
-          ),
-        ),
-        
-        // Contenido del evento
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Título y estado
-                _buildHeaderSection(theme, evento),
-                
-                SizedBox(height: 16),
-                
-                // Información principal
-                _buildMainInfoSection(theme, evento),
-                
-                SizedBox(height: 24),
-                
-                // Descripción
-                _buildDescriptionSection(theme, evento),
-                
-                SizedBox(height: 24),
-                
-                // Información adicional
-                _buildAdditionalInfoSection(theme, evento),
-                
-                SizedBox(height: 24),
-                
-                // Emprendedor
-                _buildEmprendedorSection(theme, evento),
-                
-                SizedBox(height: 24),
-                
-                // Otros eventos del emprendedor
-                _buildOtherEventsSection(theme, evento),
-                
-                SizedBox(height: 32),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeroImage(ThemeData theme, Evento evento) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.black.withOpacity(0.3),
-            Colors.black.withOpacity(0.1),
-            Colors.transparent,
-          ],
-        ),
-      ),
-      child: Stack(
+  Widget _buildEventoDetail(bool isDark, Evento evento) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Imagen de fondo
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            child: evento.imagenUrl != null && evento.imagenUrl!.isNotEmpty
-                ? Image.network(
-                    evento.imagenUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildPlaceholderImage(theme);
-                    },
-                  )
-                : _buildPlaceholderImage(theme),
-          ),
-          
-          // Overlay con información
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
+          // Imagen principal optimizada
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: EdgeInsets.all(16),
+              height: 240,
+              width: double.infinity,
+              margin: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withOpacity(0.7),
-                  ],
-                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 15,
+                    offset: Offset(0, 5),
+                  ),
+                ],
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Stack(
                 children: [
-                  _buildStatusChip(theme, evento),
-                  SizedBox(height: 8),
-                  Text(
-                    evento.titulo,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
+                  Image.asset(
+                    _getAssetImage(evento.id.hashCode),
+                    height: 240,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    height: 240,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.1),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderImage(ThemeData theme) {
-    return Container(
-      color: theme.primaryColor.withOpacity(0.1),
-      child: Center(
-        child: Icon(
-          Icons.event_rounded,
-          size: 64,
-          color: theme.primaryColor.withOpacity(0.6),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(ThemeData theme, Evento evento) {
-    Color chipColor;
-    Color textColor;
-    String text;
-    IconData icon;
-
-    if (evento.isActivo && evento.isProximo) {
-      chipColor = Colors.green;
-      textColor = Colors.white;
-      text = 'Próximo';
-      icon = Icons.upcoming_rounded;
-    } else if (evento.isActivo) {
-      chipColor = Colors.blue;
-      textColor = Colors.white;
-      text = 'Activo';
-      icon = Icons.play_circle_outline_rounded;
-    } else {
-      chipColor = Colors.grey;
-      textColor = Colors.white;
-      text = 'Finalizado';
-      icon = Icons.check_circle_outline_rounded;
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: chipColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: textColor),
-          SizedBox(width: 6),
-          Text(
-            text,
-            style: TextStyle(
-              color: textColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          
+          // Contenido principal
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Título y precio
+                Card(
+                  color: isDark ? Color(0xFF1E293B) : Colors.white,
+                  elevation: 2,
+                  shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                evento.titulo,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Color(0xFF1A202C),
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                evento.precio != null && evento.precio! > 0
+                                    ? 'S/ ${evento.precio!.toStringAsFixed(0)}'
+                                    : 'Gratis',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            _buildStatusChip(isDark, evento),
+                            SizedBox(width: 10),
+                            if (evento.categoria != null)
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: (isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  evento.categoria!,
+                                  style: TextStyle(
+                                    color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: 16),
+                
+                // Información del evento
+                Card(
+                  color: isDark ? Color(0xFF1E293B) : Colors.white,
+                  elevation: 2,
+                  shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Información del Evento',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Color(0xFF1A202C),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.calendar_today,
+                          'Fecha',
+                          evento.fecha,
+                          isDark,
+                        ),
+                        SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.access_time,
+                          'Hora',
+                          evento.hora,
+                          isDark,
+                        ),
+                        SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.location_on,
+                          'Ubicación',
+                          evento.ubicacion,
+                          isDark,
+                        ),
+                        if (evento.capacidadMaxima != null) ...[
+                          SizedBox(height: 12),
+                          _buildInfoRow(
+                            Icons.people,
+                            'Capacidad',
+                            '${evento.capacidadMaxima} personas',
+                            isDark,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: 16),
+                
+                // Descripción
+                Card(
+                  color: isDark ? Color(0xFF1E293B) : Colors.white,
+                  elevation: 2,
+                  shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Descripción',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Color(0xFF1A202C),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          evento.descripcion,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Color(0xFF718096),
+                            fontSize: 16,
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: 16),
+                
+                // Organizador
+                Card(
+                  color: isDark ? Color(0xFF1E293B) : Colors.white,
+                  elevation: 2,
+                  shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Organizador',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Color(0xFF1A202C),
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: (isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Icon(
+                                Icons.person,
+                                color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                                size: 24,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    evento.emprendedorNombre,
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white : Color(0xFF1A202C),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Organizador del evento',
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white70 : Color(0xFF718096),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: 32),
+              ],
             ),
           ),
         ],
@@ -236,95 +388,13 @@ class EventoDetailScreen extends GetView<EventosController> {
     );
   }
 
-  Widget _buildHeaderSection(ThemeData theme, Evento evento) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            evento.titulo,
-            style: TextStyle(
-              color: theme.textTheme.headlineSmall?.color,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        SizedBox(width: 12),
-        if (evento.precio != null && evento.precio! > 0)
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: theme.primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'S/ ${evento.precio!.toStringAsFixed(2)}',
-              style: TextStyle(
-                color: theme.primaryColor,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          )
-        else
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              'Gratis',
-              style: TextStyle(
-                color: Colors.green,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildMainInfoSection(ThemeData theme, Evento evento) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildInfoRow(theme, Icons.calendar_today_rounded, 'Fecha y Hora', '${evento.fecha} • ${evento.hora}'),
-          SizedBox(height: 12),
-          _buildInfoRow(theme, Icons.location_on_rounded, 'Ubicación', evento.ubicacion),
-          if (evento.categoria != null) ...[
-            SizedBox(height: 12),
-            _buildInfoRow(theme, Icons.category_rounded, 'Categoría', evento.categoria!),
-          ],
-          if (evento.capacidadMaxima != null) ...[
-            SizedBox(height: 12),
-            _buildInfoRow(theme, Icons.people_rounded, 'Capacidad', '${evento.capacidadMaxima} personas'),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(ThemeData theme, IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value, bool isDark) {
     return Row(
       children: [
         Icon(
           icon,
+          color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
           size: 20,
-          color: theme.primaryColor.withOpacity(0.7),
         ),
         SizedBox(width: 12),
         Expanded(
@@ -334,7 +404,7 @@ class EventoDetailScreen extends GetView<EventosController> {
               Text(
                 label,
                 style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  color: isDark ? Colors.white70 : Color(0xFF718096),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -342,7 +412,7 @@ class EventoDetailScreen extends GetView<EventosController> {
               Text(
                 value,
                 style: TextStyle(
-                  color: theme.textTheme.titleMedium?.color,
+                  color: isDark ? Colors.white : Color(0xFF1A202C),
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -354,277 +424,139 @@ class EventoDetailScreen extends GetView<EventosController> {
     );
   }
 
-  Widget _buildDescriptionSection(ThemeData theme, Evento evento) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Descripción',
-          style: TextStyle(
-            color: theme.textTheme.titleLarge?.color,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        SizedBox(height: 12),
-        Text(
-          evento.descripcion,
-          style: TextStyle(
-            color: theme.textTheme.bodyLarge?.color,
-            fontSize: 16,
-            height: 1.6,
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildStatusChip(bool isDark, Evento evento) {
+    Color chipColor;
+    Color textColor;
+    String text;
+    IconData icon;
 
-  Widget _buildAdditionalInfoSection(ThemeData theme, Evento evento) {
+    if (evento.isActivo && evento.isProximo) {
+      chipColor = Colors.green;
+      textColor = Colors.white;
+      text = 'Próximo';
+      icon = Icons.upcoming;
+    } else if (evento.isActivo) {
+      chipColor = isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35);
+      textColor = Colors.white;
+      text = 'Activo';
+      icon = Icons.play_circle_outline;
+    } else {
+      chipColor = Colors.grey;
+      textColor = Colors.white;
+      text = 'Finalizado';
+      icon = Icons.check_circle_outline;
+    }
+
     return Container(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: chipColor,
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(icon, size: 12, color: textColor),
+          SizedBox(width: 4),
           Text(
-            'Información Adicional',
+            text,
             style: TextStyle(
-              color: theme.textTheme.titleMedium?.color,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              color: textColor,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 12),
-          _buildInfoRow(theme, Icons.info_outline_rounded, 'Estado', evento.estado ?? 'No especificado'),
-          if (evento.fechaCreacion != null) ...[
-            SizedBox(height: 12),
-            _buildInfoRow(
-              theme, 
-              Icons.schedule_rounded, 
-              'Fecha de Creación', 
-              '${evento.fechaCreacion!.day}/${evento.fechaCreacion!.month}/${evento.fechaCreacion!.year}'
-            ),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildEmprendedorSection(ThemeData theme, Evento evento) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildLoadingState(bool isDark) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            'Organizador',
-            style: TextStyle(
-              color: theme.textTheme.titleMedium?.color,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(
+              isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
             ),
           ),
-          SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: evento.emprendedorImagen != null && evento.emprendedorImagen!.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(24),
-                        child: Image.network(
-                          evento.emprendedorImagen!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.person_rounded,
-                              size: 24,
-                              color: theme.primaryColor,
-                            );
-                          },
-                        ),
-                      )
-                    : Icon(
-                        Icons.person_rounded,
-                        size: 24,
-                        color: theme.primaryColor,
-                      ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      evento.emprendedorNombre,
-                      style: TextStyle(
-                        color: theme.textTheme.titleMedium?.color,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      'Organizador del evento',
-                      style: TextStyle(
-                        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: theme.primaryColor,
-                ),
-                onPressed: () => controller.onEmprendedorEventosTap(evento.emprendedorId),
-              ),
-            ],
+          SizedBox(height: 16),
+          Text(
+            'Cargando evento...',
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.grey[600],
+              fontSize: 16,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildOtherEventsSection(ThemeData theme, Evento evento) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Otros eventos de ${evento.emprendedorNombre}',
-              style: TextStyle(
-                color: theme.textTheme.titleLarge?.color,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            Spacer(),
-            TextButton(
-              onPressed: () => controller.onEmprendedorEventosTap(evento.emprendedorId),
-              child: Text(
-                'Ver todos',
-                style: TextStyle(
-                  color: theme.primaryColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12),
-        Obx(() {
-          if (controller.isLoadingEmprendedor.value) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
-                ),
-              ),
-            );
-          }
-          
-          if (controller.errorEmprendedor.value != null) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text(
-                  'Error al cargar otros eventos',
-                  style: TextStyle(
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                  ),
-                ),
-              ),
-            );
-          }
-          
-          if (controller.eventosEmprendedor.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text(
-                  'No hay otros eventos disponibles',
-                  style: TextStyle(
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                  ),
-                ),
-              ),
-            );
-          }
-          
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: controller.eventosEmprendedor.length > 3 ? 3 : controller.eventosEmprendedor.length,
-            itemBuilder: (context, index) {
-              final otroEvento = controller.eventosEmprendedor[index];
-              if (otroEvento.id == evento.id) return SizedBox.shrink();
-              return Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: EventoCard(
-                  evento: otroEvento,
-                  onTap: () => controller.onEventoTap(otroEvento),
-                ),
-              );
-            },
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildLoadingState(ThemeData theme) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Detalle del Evento'),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => Get.back(),
-        ),
-      ),
-      body: Center(
+  Widget _buildErrorState(bool isDark) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(theme.primaryColor),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Cargando evento...',
-              style: TextStyle(
-                color: theme.textTheme.bodyMedium?.color,
-                fontSize: 16,
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                    blurRadius: 15,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: isDark ? Colors.red[400] : Colors.red[600],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Error al cargar el evento',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Color(0xFF1A202C),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    controller.errorDetalle.value ?? 'Error desconocido',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Color(0xFF718096),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (evento != null) {
+                        controller.loadEventoDetalle(evento!.id);
+                      }
+                    },
+                    icon: Icon(Icons.refresh, color: Colors.white),
+                    label: Text('Reintentar', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -633,123 +565,66 @@ class EventoDetailScreen extends GetView<EventosController> {
     );
   }
 
-  Widget _buildErrorState(ThemeData theme) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Detalle del Evento'),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => Get.back(),
-        ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: theme.colorScheme.error.withOpacity(0.6),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Error al cargar el evento',
-                style: TextStyle(
-                  color: theme.textTheme.titleMedium?.color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                controller.errorDetalle.value ?? 'Error desconocido',
-                style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () {
-                  if (evento != null) {
-                    controller.loadEventoDetalle(evento!.id);
-                  }
-                },
-                icon: Icon(Icons.refresh_rounded),
-                label: Text('Reintentar'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+  Widget _buildNotFoundState(bool isDark) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                    blurRadius: 15,
+                    offset: Offset(0, 5),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.event_busy,
+                    size: 64,
+                    color: isDark ? Colors.white30 : Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Evento no encontrado',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Color(0xFF1A202C),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'El evento que buscas no existe o ha sido eliminado',
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Color(0xFF718096),
+                      fontSize: 14,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildNotFoundState(ThemeData theme) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Detalle del Evento'),
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => Get.back(),
-        ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.event_busy_rounded,
-                size: 64,
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.4),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Evento no encontrado',
-                style: TextStyle(
-                  color: theme.textTheme.titleMedium?.color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'El evento que buscas no existe o ha sido eliminado',
-                style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                  fontSize: 14,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _shareEvento(Evento evento) {
-    // Implementar funcionalidad de compartir
+  void _shareEvento(Evento? evento) {
     Get.snackbar(
       'Compartir',
       'Funcionalidad de compartir próximamente',
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.blue.withOpacity(0.9),
+      backgroundColor: (Get.isDarkMode ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withOpacity(0.9),
       colorText: Colors.white,
       borderRadius: 12,
       margin: EdgeInsets.all(16),

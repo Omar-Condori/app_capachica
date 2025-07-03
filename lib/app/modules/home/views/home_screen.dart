@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:ui' as ui;
 import '../controllers/home_controller.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
@@ -169,74 +170,70 @@ class HomeScreen extends GetView<HomeController> {
       alignment: Alignment.center,
       padding: EdgeInsets.only(top: screenHeight * 0.16, left: screenWidth * 0.08, right: screenWidth * 0.08, bottom: 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título principal centrado
+          // Título principal alineado a la izquierda
           Text(
             'Turismo\nCapachica',
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
             style: TextStyle(
               color: Colors.white,
-              fontSize: screenWidth < 400 ? 36 : 48,
-              fontWeight: FontWeight.w800,
-              height: 1.1,
-              letterSpacing: 1.2,
+              fontSize: screenWidth < 400 ? 48 : 64,
+              fontWeight: FontWeight.w900,
+              height: 1.0,
+              letterSpacing: 1.5,
               shadows: [
                 Shadow(
-                  offset: Offset(0, 3),
-                  blurRadius: 6,
-                  color: Colors.black.withOpacity(0.6),
+                  offset: Offset(0, 4),
+                  blurRadius: 8,
+                  color: Colors.black.withOpacity(0.7),
                 ),
                 Shadow(
-                  offset: Offset(0, 1),
-                  blurRadius: 2,
-                  color: Colors.black.withOpacity(0.3),
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.4),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 12),
-          // Subtítulo centrado
+          SizedBox(height: 16),
+          // Subtítulo alineado a la izquierda
           Text(
             'Descubre la magia del lago Titicaca',
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.left,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: screenWidth < 400 ? 16 : 18,
-              fontWeight: FontWeight.w400,
-              letterSpacing: 0.5,
+              color: Colors.white.withOpacity(0.95),
+              fontSize: screenWidth < 400 ? 20 : 24,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.8,
               shadows: [
                 Shadow(
-                  offset: Offset(0, 1),
-                  blurRadius: 3,
-                  color: Colors.black.withOpacity(0.5),
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                  color: Colors.black.withOpacity(0.6),
                 ),
               ],
             ),
           ),
-          SizedBox(height: screenHeight * 0.06),
-          // Botones de acción centrados y más abajo
+          SizedBox(height: screenHeight * 0.08),
+          // Botones de acción alineados a la izquierda
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildActionButton(
-                  'Ver Planes',
-                  Icons.map,
-                  false,
-                  () => controller.onHotelsTap(),
-                  screenWidth,
-                ),
+              _buildActionButton(
+                'Ver Planes',
+                Icons.map,
+                false,
+                () => controller.onHotelsTap(),
+                screenWidth,
               ),
               SizedBox(width: 16),
-              Expanded(
-                child: _buildActionButton(
-                  'Servicios',
-                  Icons.explore_outlined,
-                  true,
-                  () => controller.onToursTap(),
-                  screenWidth,
-                ),
+              _buildActionButton(
+                'Servicios',
+                Icons.explore_outlined,
+                true,
+                () => controller.onToursTap(),
+                screenWidth,
               ),
             ],
           ),
@@ -248,47 +245,75 @@ class HomeScreen extends GetView<HomeController> {
   Widget _buildActionButton(String title, IconData icon, bool isFilled, VoidCallback onTap, double screenWidth) {
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: screenWidth < 400 ? 16 : 20
-        ),
-        decoration: BoxDecoration(
-          color: isFilled
-              ? Color(0xFFFF9100).withOpacity(0.9)
-              : Colors.white.withOpacity(0.1),
-          border: Border.all(
-            color: isFilled
-                ? Color(0xFFFF9100)
-                : Colors.white.withOpacity(0.6),
-            width: 1.5,
-          ),
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+      child: Container(
+        width: screenWidth < 400 ? 140 : 160,
+        height: 60,
+        child: Stack(
           children: [
-            Icon(
-              icon,
-              color: Colors.white,
-              size: screenWidth < 400 ? 18 : 20,
+            // Fondo base del botón
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: BoxDecoration(
+                color: isFilled
+                    ? Color(0xFFFF9100).withOpacity(0.9)
+                    : Colors.black.withOpacity(0.7),
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
             ),
-            SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: screenWidth < 400 ? 14 : 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+            
+            // Efecto neón tipo serpiente/gusano
+            AnimatedBuilder(
+              animation: controller.neonAnimation,
+              builder: (context, child) {
+                return CustomPaint(
+                  size: Size(double.infinity, double.infinity),
+                  painter: NeonSnakePainter(
+                    progress: controller.neonAnimation.value,
+                    color: isFilled
+                        ? Color(0xFFFF9100)
+                        : Colors.cyan,
+                    secondaryColor: isFilled
+                        ? Color(0xFFFFE082)
+                        : Colors.purple,
+                  ),
+                );
+              },
+            ),
+            
+            // Contenido del botón
+            Positioned.fill(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    icon,
+                    color: Colors.white,
+                    size: screenWidth < 400 ? 20 : 22,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: screenWidth < 400 ? 15 : 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                      shadows: [
+                        Shadow(
+                          color: isFilled
+                              ? Color(0xFFFF9100).withOpacity(0.8)
+                              : Colors.cyan.withOpacity(0.8),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -888,5 +913,114 @@ class HomeScreen extends GetView<HomeController> {
         ),
       ),
     );
+  }
+}
+
+// Painter personalizado para el efecto neón tipo serpiente
+class NeonSnakePainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final Color secondaryColor;
+
+  NeonSnakePainter({
+    required this.progress,
+    required this.color,
+    required this.secondaryColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    final borderRadius = 30.0;
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(borderRadius));
+    
+    // Crear el path del perímetro del botón
+    final path = Path()..addRRect(rrect);
+    final pathMetrics = path.computeMetrics().first;
+    final pathLength = pathMetrics.length;
+    
+    // Configurar el paint para el efecto neón
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0
+      ..strokeCap = StrokeCap.round;
+    
+    // Configurar el paint para el resplandor
+    final glowPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8.0
+      ..strokeCap = StrokeCap.round;
+    
+    // Longitud del "gusano" neón (30% del perímetro)
+    final snakeLength = pathLength * 0.3;
+    
+    // Posición actual del gusano basada en el progreso
+    final currentPosition = progress * pathLength;
+    
+    // Dibujar el rastro del gusano con degradado
+    final segments = 20; // Número de segmentos para el degradado
+    
+    for (int i = 0; i < segments; i++) {
+      final segmentProgress = i / segments;
+      final segmentPosition = currentPosition - (snakeLength * segmentProgress);
+      
+      // Asegurar que la posición esté dentro del rango
+      final normalizedPosition = segmentPosition % pathLength;
+      if (normalizedPosition < 0) continue;
+      
+      final segmentStart = normalizedPosition;
+      final segmentEnd = (segmentStart + snakeLength / segments).clamp(0.0, pathLength);
+      
+      if (segmentStart >= segmentEnd) continue;
+      
+      // Calcular la opacidad del segmento (más brillante al frente)
+      final opacity = (1.0 - segmentProgress) * 0.8;
+      
+      // Color del segmento con degradado
+      final segmentColor = Color.lerp(
+        secondaryColor.withOpacity(opacity * 0.3),
+        color.withOpacity(opacity),
+        1.0 - segmentProgress,
+      )!;
+      
+      // Dibujar resplandor
+      glowPaint.color = segmentColor.withOpacity(opacity * 0.3);
+      final glowPath = _extractPathSegment(pathMetrics, segmentStart, segmentEnd);
+      canvas.drawPath(glowPath, glowPaint);
+      
+      // Dibujar línea principal
+      paint.color = segmentColor;
+      final mainPath = _extractPathSegment(pathMetrics, segmentStart, segmentEnd);
+      canvas.drawPath(mainPath, paint);
+    }
+    
+    // Dibujar la "cabeza" del gusano más brillante
+    final headPosition = currentPosition % pathLength;
+    final headLength = snakeLength * 0.1;
+    final headEnd = (headPosition + headLength).clamp(0.0, pathLength);
+    
+    // Resplandor de la cabeza
+    glowPaint.color = color.withOpacity(0.6);
+    glowPaint.strokeWidth = 12.0;
+    final headGlowPath = _extractPathSegment(pathMetrics, headPosition, headEnd);
+    canvas.drawPath(headGlowPath, glowPaint);
+    
+    // Cabeza principal
+    paint.color = color;
+    paint.strokeWidth = 6.0;
+    final headPath = _extractPathSegment(pathMetrics, headPosition, headEnd);
+    canvas.drawPath(headPath, paint);
+  }
+  
+  Path _extractPathSegment(ui.PathMetric pathMetric, double start, double end) {
+    if (start >= end) return Path();
+    return pathMetric.extractPath(start, end);
+  }
+
+  @override
+  bool shouldRepaint(covariant NeonSnakePainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+           oldDelegate.color != color ||
+           oldDelegate.secondaryColor != secondaryColor;
   }
 }

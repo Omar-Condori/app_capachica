@@ -225,13 +225,112 @@ class CartController extends GetxController {
   }
 
   void mostrarDialogoConfirmacion() {
-    Get.snackbar(
-      '¡Agregado!',
-      'El item ha sido agregado al carrito',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.green,
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Get.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icono de éxito
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.green,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              // Título
+              Text(
+                '¡Agregado al carrito!',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Get.isDarkMode ? Colors.white : const Color(0xFF1A202C),
+                ),
+              ),
+              const SizedBox(height: 8),
+              
+              // Mensaje
+              Text(
+                'Has agregado el item al carrito exitosamente',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Get.isDarkMode ? Colors.white70 : const Color(0xFF718096),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              
+              // Botones
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Get.back(); // Cerrar diálogo
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(
+                          color: Get.isDarkMode ? Colors.white30 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Text(
+                        'Seguir navegando',
+                        style: TextStyle(
+                          color: Get.isDarkMode ? Colors.white : const Color(0xFF374151),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back(); // Cerrar diálogo
+                        Get.toNamed('/carrito'); // Navegar al carrito
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Get.isDarkMode ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Ver carrito',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: true,
     );
   }
 } 

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/emprendedor_model.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
 import '../controllers/emprendedores_controller.dart';
@@ -29,6 +27,30 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
   List<ServicioEmprendedor> _servicios = [];
   List<RelacionEmprendedor> _relaciones = [];
   String? _errorMessage;
+
+  // Lista de imágenes de assets para asignar rotativamente
+  static const List<String> _assetImages = [
+    'assets/lugar-turistico1.jpg',
+    'assets/lugar-turistico2.jpg',
+    'assets/lugar-turistico3.jpg',
+    'assets/lugar-turistico4.jpg',
+    'assets/lugar-turistico5.jpg',
+    'assets/lugar-turistico6.jpg',
+    'assets/lugar-turistico-line1-1.jpg',
+    'assets/lugar-turistico-line1-2.jpg',
+    'assets/lugar-turistico-line2-1.jpg',
+    'assets/lugar-turistico-line2-2.jpg',
+    'assets/lugar-turistico-line3-1.jpg',
+    'assets/lugar-turistico-line3-2.jpg',
+    'assets/lugar-turistico-line4-1.jpg',
+    'assets/lugar-turistico-line4-2.jpg',
+    'assets/lugar-turistico-line5-1.jpg',
+    'assets/lugar-turistico-line5-2.jpg',
+  ];
+
+  String _getAssetImage(int index) {
+    return _assetImages[index % _assetImages.length];
+  }
 
   @override
   void initState() {
@@ -90,31 +112,46 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDark ? Color(0xFF0F1419) : Color(0xFFF8FAFC),
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          onPressed: () => Get.back(),
+        ),
         title: Text(
           widget.emprendedor.nombre,
-          style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
-            color: AppColors.primary,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Get.back(),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
+            ),
+          ),
         ),
         actions: [
           const CartIconWithBadge(),
+          const ThemeToggleButton(),
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppColors.primary,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
           tabs: const [
             Tab(text: 'Información'),
             Tab(text: 'Servicios'),
@@ -125,36 +162,36 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildInformacionTab(),
-          _buildServiciosTab(),
-          _buildContactoTab(),
+          _buildInformacionTab(isDark),
+          _buildServiciosTab(isDark),
+          _buildContactoTab(isDark),
         ],
       ),
     );
   }
 
-  Widget _buildInformacionTab() {
+  Widget _buildInformacionTab(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildEmprendedorImage(),
+          _buildEmprendedorImage(isDark),
           const SizedBox(height: 20),
-          _buildBasicInfo(),
+          _buildBasicInfo(isDark),
           const SizedBox(height: 20),
           if (widget.emprendedor.descripcion != null && widget.emprendedor.descripcion!.isNotEmpty)
-            _buildDescription(),
+            _buildDescription(isDark),
           const SizedBox(height: 20),
-          _buildStatusCard(),
+          _buildStatusCard(isDark),
           const SizedBox(height: 20),
-          if (_relaciones.isNotEmpty) _buildRelacionesSection(),
+          if (_relaciones.isNotEmpty) _buildRelacionesSection(isDark),
         ],
       ),
     );
   }
 
-  Widget _buildEmprendedorImage() {
+  Widget _buildEmprendedorImage(bool isDark) {
     String? imagenUrl;
     
     try {
@@ -189,48 +226,78 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
       return url != null && (url.startsWith('http://') || url.startsWith('https://'));
     }
 
-    if (!isValidUrl(imagenUrl)) {
-      imagenUrl = 'https://via.placeholder.com/400x200.png?text=🏪';
-    }
-
-    return Container(
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.network(
-          imagenUrl!,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => Container(
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: double.infinity,
+        height: 240,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 15,
+              offset: Offset(0, 5),
             ),
-            child: Icon(
-              Icons.store,
-              color: AppColors.primary,
-              size: 64,
+          ],
+        ),
+        child: Stack(
+          children: [
+            if (isValidUrl(imagenUrl))
+              Image.network(
+                imagenUrl!,
+                height: 240,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Image.asset(
+                  _getAssetImage(widget.emprendedor.id.hashCode),
+                  height: 240,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              )
+            else
+              Image.asset(
+                _getAssetImage(widget.emprendedor.id.hashCode),
+                height: 240,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  height: 240,
+                  width: double.infinity,
+                  color: isDark ? Color(0xFF334155) : Colors.grey[300],
+                  child: Icon(
+                    Icons.store,
+                    size: 64,
+                    color: isDark ? Colors.white30 : Colors.grey[600],
+                  ),
+                ),
+              ),
+            Container(
+              height: 240,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.1),
+                  ],
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildBasicInfo() {
+  Widget _buildBasicInfo(bool isDark) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: isDark ? Color(0xFF1E293B) : Colors.white,
+      elevation: 2,
+      shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -238,24 +305,28 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
           children: [
             Text(
               widget.emprendedor.nombre,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: isDark ? Colors.white : Color(0xFF1A202C),
               ),
             ),
             const SizedBox(height: 8),
             
             Row(
               children: [
-                Icon(Icons.category, color: AppColors.primary, size: 20),
+                Icon(
+                  Icons.category, 
+                  color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                  size: 20
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.emprendedor.tipoServicio,
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.primary,
+                      color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -267,14 +338,14 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
             
             Row(
               children: [
-                Icon(Icons.location_on, color: Colors.grey[600], size: 20),
+                Icon(Icons.location_on, color: isDark ? Colors.white70 : Colors.grey[600], size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     widget.emprendedor.ubicacion,
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey[600],
+                      color: isDark ? Colors.white70 : Colors.grey[600],
                     ),
                   ),
                 ),
@@ -286,10 +357,12 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     );
   }
 
-  Widget _buildDescription() {
+  Widget _buildDescription(bool isDark) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: isDark ? Color(0xFF1E293B) : Colors.white,
+      elevation: 2,
+      shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -297,13 +370,18 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
           children: [
             Row(
               children: [
-                Icon(Icons.description, color: AppColors.primary, size: 20),
+                Icon(
+                  Icons.description, 
+                  color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                  size: 20
+                ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Descripción',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Color(0xFF1A202C),
                   ),
                 ),
               ],
@@ -311,9 +389,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
             const SizedBox(height: 12),
             Text(
               widget.emprendedor.descripcion!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 height: 1.5,
+                color: isDark ? Colors.white70 : Color(0xFF718096),
               ),
             ),
           ],
@@ -322,10 +401,12 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     );
   }
 
-  Widget _buildStatusCard() {
+  Widget _buildStatusCard(bool isDark) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: isDark ? Color(0xFF1E293B) : Colors.white,
+      elevation: 2,
+      shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -353,10 +434,12 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     );
   }
 
-  Widget _buildRelacionesSection() {
+  Widget _buildRelacionesSection(bool isDark) {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: isDark ? Color(0xFF1E293B) : Colors.white,
+      elevation: 2,
+      shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -364,13 +447,18 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
           children: [
             Row(
               children: [
-                Icon(Icons.link, color: AppColors.primary, size: 20),
+                Icon(
+                  Icons.link, 
+                  color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                  size: 20
+                ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Información Adicional',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Color(0xFF1A202C),
                   ),
                 ),
               ],
@@ -383,15 +471,19 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                 children: [
                   Text(
                     '${relacion.tipo}: ',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
+                      color: isDark ? Colors.white : Color(0xFF1A202C),
                     ),
                   ),
                   Expanded(
                     child: Text(
                       relacion.valor,
-                      style: const TextStyle(fontSize: 14),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white70 : Color(0xFF718096),
+                      ),
                     ),
                   ),
                 ],
@@ -403,19 +495,24 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     );
   }
 
-  Widget _buildServiciosTab() {
+  Widget _buildServiciosTab(bool isDark) {
     if (_isLoadingServicios) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
+              ),
             ),
             SizedBox(height: 16),
             Text(
               'Cargando servicios...',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 16, 
+                color: isDark ? Colors.white70 : Colors.grey[600]
+              ),
             ),
           ],
         ),
@@ -424,33 +521,54 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
 
     if (_servicios.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.work_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No hay servicios disponibles',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: isDark ? Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
+                      blurRadius: 15,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.work_outline,
+                      size: 64,
+                      color: isDark ? Colors.white30 : Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No hay servicios disponibles',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Color(0xFF1A202C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Este emprendedor aún no ha registrado servicios',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white70 : Color(0xFF718096),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Este emprendedor aún no ha registrado servicios',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -462,8 +580,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
         final servicio = _servicios[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          elevation: 4,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          color: isDark ? Color(0xFF1E293B) : Colors.white,
+          elevation: 2,
+          shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -474,16 +594,17 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                     Expanded(
                       child: Text(
                         servicio.nombre,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Color(0xFF1A202C),
                         ),
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: servicio.estado ? Colors.green[100] : Colors.red[100],
+                        color: servicio.estado ? Colors.green : Colors.red,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -491,7 +612,7 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: servicio.estado ? Colors.green[800] : Colors.red[800],
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -500,29 +621,37 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                 const SizedBox(height: 8),
                 Text(
                   servicio.descripcion,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
+                  style: TextStyle(
+                    fontSize: 14, 
+                    height: 1.4,
+                    color: isDark ? Colors.white70 : Color(0xFF718096),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.attach_money, color: AppColors.primary, size: 16),
+                    Icon(
+                      Icons.attach_money, 
+                      color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                      size: 16
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'S/. ${servicio.precioReferencial}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Icon(Icons.people, color: Colors.grey[600], size: 16),
+                    Icon(Icons.people, color: isDark ? Colors.white70 : Colors.grey[600], size: 16),
                     const SizedBox(width: 4),
                     Text(
                       '${servicio.capacidad} personas',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: isDark ? Colors.white70 : Colors.grey[600],
                       ),
                     ),
                   ],
@@ -530,14 +659,14 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: Colors.grey[600], size: 16),
+                    Icon(Icons.location_on, color: isDark ? Colors.white70 : Colors.grey[600], size: 16),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         servicio.ubicacionReferencia,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: isDark ? Colors.white70 : Colors.grey[600],
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -554,7 +683,7 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                         categoria.nombre,
                         style: const TextStyle(fontSize: 12),
                       ),
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
+                      backgroundColor: (isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withValues(alpha: 0.1),
                       labelPadding: const EdgeInsets.symmetric(horizontal: 8),
                     )).toList(),
                   ),
@@ -567,14 +696,16 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     );
   }
 
-  Widget _buildContactoTab() {
+  Widget _buildContactoTab(bool isDark) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: isDark ? Color(0xFF1E293B) : Colors.white,
+            elevation: 2,
+            shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -582,13 +713,18 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.contact_phone, color: AppColors.primary, size: 20),
+                      Icon(
+                        Icons.contact_phone, 
+                        color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                        size: 20
+                      ),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'Información de Contacto',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Color(0xFF1A202C),
                         ),
                       ),
                     ],
@@ -601,6 +737,7 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                       'Teléfono',
                       widget.emprendedor.telefono!,
                       () => _makePhoneCall(widget.emprendedor.telefono!),
+                      isDark,
                     ),
                   
                   if (widget.emprendedor.email != null && widget.emprendedor.email!.isNotEmpty)
@@ -609,6 +746,7 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                       'Email',
                       widget.emprendedor.email!,
                       () => _sendEmail(widget.emprendedor.email!),
+                      isDark,
                     ),
                   
                   _buildContactItem(
@@ -616,6 +754,7 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                     'Ubicación',
                     widget.emprendedor.ubicacion,
                     () => _openLocation(),
+                    isDark,
                   ),
                 ],
               ),
@@ -625,18 +764,21 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
           const SizedBox(height: 20),
           
           Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: isDark ? Color(0xFF1E293B) : Colors.white,
+            elevation: 2,
+            shadowColor: isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Acciones',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Color(0xFF1A202C),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -645,14 +787,13 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () => _contactEmprendedor(),
-                      icon: const Icon(Icons.message),
-                      label: const Text('Contactar'),
+                      icon: const Icon(Icons.message, color: Colors.white),
+                      label: const Text('Contactar', style: TextStyle(color: Colors.white)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
@@ -664,14 +805,21 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () => _shareEmprendedor(),
-                      icon: const Icon(Icons.share),
-                      label: const Text('Compartir'),
+                      icon: Icon(
+                        Icons.share, 
+                        color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
+                      ),
+                      label: Text(
+                        'Compartir',
+                        style: TextStyle(
+                          color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
+                        ),
+                      ),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: BorderSide(color: AppColors.primary),
+                        side: BorderSide(color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
@@ -685,7 +833,7 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     );
   }
 
-  Widget _buildContactItem(IconData icon, String label, String value, VoidCallback onTap) {
+  Widget _buildContactItem(IconData icon, String label, String value, VoidCallback onTap, bool isDark) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -695,7 +843,11 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
           padding: const EdgeInsets.all(8),
           child: Row(
             children: [
-              Icon(icon, color: AppColors.primary, size: 20),
+              Icon(
+                icon, 
+                color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                size: 20
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -705,21 +857,26 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
                       label,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: isDark ? Colors.white70 : Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     Text(
                       value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white : Color(0xFF1A202C),
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 16),
+              Icon(
+                Icons.arrow_forward_ios, 
+                color: isDark ? Colors.white30 : Colors.grey[400], 
+                size: 16
+              ),
             ],
           ),
         ),
@@ -731,8 +888,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     Get.snackbar(
       'Llamar',
       'Llamando a $phone',
-      backgroundColor: AppColors.primary,
+      backgroundColor: (Get.isDarkMode ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withOpacity(0.9),
       colorText: Colors.white,
+      borderRadius: 12,
+      margin: EdgeInsets.all(16),
     );
   }
 
@@ -740,8 +899,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     Get.snackbar(
       'Email',
       'Enviando email a $email',
-      backgroundColor: AppColors.primary,
+      backgroundColor: (Get.isDarkMode ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withOpacity(0.9),
       colorText: Colors.white,
+      borderRadius: 12,
+      margin: EdgeInsets.all(16),
     );
   }
 
@@ -749,8 +910,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     Get.snackbar(
       'Ubicación',
       'Abriendo ubicación en mapa',
-      backgroundColor: AppColors.primary,
+      backgroundColor: (Get.isDarkMode ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withOpacity(0.9),
       colorText: Colors.white,
+      borderRadius: 12,
+      margin: EdgeInsets.all(16),
     );
   }
 
@@ -758,8 +921,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     Get.snackbar(
       'Contacto',
       'Contactando con ${widget.emprendedor.nombre}',
-      backgroundColor: AppColors.primary,
+      backgroundColor: (Get.isDarkMode ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withOpacity(0.9),
       colorText: Colors.white,
+      borderRadius: 12,
+      margin: EdgeInsets.all(16),
     );
   }
 
@@ -767,8 +932,10 @@ class _EmprendedorDetailScreenState extends State<EmprendedorDetailScreen>
     Get.snackbar(
       'Compartir',
       'Compartiendo información de ${widget.emprendedor.nombre}',
-      backgroundColor: AppColors.primary,
+      backgroundColor: (Get.isDarkMode ? Color(0xFF3B82F6) : Color(0xFFFF6B35)).withOpacity(0.9),
       colorText: Colors.white,
+      borderRadius: 12,
+      margin: EdgeInsets.all(16),
     );
   }
 } 
