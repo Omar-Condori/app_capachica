@@ -6,6 +6,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
+import '../../../services/auth_service.dart';
+import '../../../data/models/reserva_model.dart';
+import '../../../core/widgets/auth_redirect_dialog.dart';
 
 class PlanDetalleScreen extends GetView<PlanDetalleController> {
   const PlanDetalleScreen({super.key});
@@ -266,13 +269,129 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            onPressed: () {
-              // TODO: Implementar lógica de reserva
-              Get.snackbar(
-                'Reserva',
-                'Función de reserva en desarrollo',
-                backgroundColor: AppColors.primary,
-                colorText: Colors.white,
+            onPressed: () async {
+              final authService = Get.find<AuthService>();
+              final cartController = Get.find<CartController>();
+              if (!authService.isLoggedIn) {
+                Get.dialog(AuthRedirectDialog(
+                  onLoginPressed: () {
+                    Get.offAllNamed('/login');
+                  },
+                  onRegisterPressed: () {
+                    Get.offAllNamed('/register');
+                  },
+                ));
+                return;
+              }
+
+              final fechaController = TextEditingController(text: DateTime.now().toIso8601String().split('T')[0]);
+              final horaInicioController = TextEditingController(text: '09:00');
+              final horaFinController = TextEditingController(text: '10:00');
+              final notasController = TextEditingController();
+              final cantidadController = TextEditingController(text: '1');
+              final duracionController = TextEditingController(text: '60');
+
+              await Get.dialog(
+                StatefulBuilder(
+                  builder: (context, setState) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: Text('Confirmar Reserva'),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextField(
+                              controller: fechaController,
+                              decoration: InputDecoration(labelText: 'Fecha (YYYY-MM-DD)'),
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: horaInicioController,
+                              decoration: InputDecoration(labelText: 'Hora Inicio (HH:MM)'),
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: horaFinController,
+                              decoration: InputDecoration(labelText: 'Hora Fin (HH:MM)'),
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: cantidadController,
+                              decoration: InputDecoration(labelText: 'Cantidad'),
+                              keyboardType: TextInputType.number,
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: duracionController,
+                              decoration: InputDecoration(labelText: 'Duración (minutos)'),
+                              keyboardType: TextInputType.number,
+                            ),
+                            SizedBox(height: 8),
+                            TextField(
+                              controller: notasController,
+                              decoration: InputDecoration(labelText: 'Notas (opcional)'),
+                              maxLines: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Get.back(),
+                          child: Text('Cancelar'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            final detalle = controller.planDetalle.value!;
+                            final reserva = ReservaModel(
+                              id: DateTime.now().millisecondsSinceEpoch, // ID temporal
+                              servicioId: detalle.plan.id,
+                              emprendedorId: 0, // No hay emprendedor directo en plan
+                              fechaInicio: fechaController.text,
+                              fechaFin: fechaController.text,
+                              horaInicio: horaInicioController.text,
+                              horaFin: horaFinController.text,
+                              duracionMinutos: int.tryParse(duracionController.text) ?? 60,
+                              cantidad: int.tryParse(cantidadController.text) ?? 1,
+                              notasCliente: notasController.text.isNotEmpty ? notasController.text : null,
+                              estado: 'pendiente',
+                              metodoPago: null,
+                              precioTotal: detalle.plan.precio ?? 0,
+                              createdAt: DateTime.now(),
+                              servicio: ServicioReserva(
+                                id: detalle.plan.id,
+                                nombre: detalle.plan.titulo,
+                                descripcion: detalle.plan.descripcion ?? '',
+                                precioReferencial: detalle.plan.precio ?? 0,
+                                imagenUrl: detalle.plan.imagenUrl,
+                              ),
+                              emprendedor: null, // No hay emprendedor directo en plan
+                            );
+                            cartController.agregarReserva(reserva);
+                            Get.back();
+                            Future.delayed(const Duration(milliseconds: 300), () {
+                              Get.bottomSheet(
+                                CartBottomSheet(
+                                  reservas: cartController.reservas,
+                                  onEliminar: cartController.eliminarReserva,
+                                  onEditar: cartController.editarReserva,
+                                  onConfirmar: cartController.confirmarReservas,
+                                ),
+                                isScrollControlled: true,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                                ),
+                              );
+                            });
+                            Get.snackbar('¡Reserva agregada!', 'Tu reserva fue añadida al carrito.', backgroundColor: Colors.green, colorText: Colors.white);
+                          },
+                          child: Text('Agregar al Carrito'),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               );
             },
           ),
