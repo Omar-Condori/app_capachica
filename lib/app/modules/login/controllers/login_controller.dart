@@ -43,10 +43,12 @@ class LoginController extends GetxController {
       final pendingRoute = box.read('pending_route') as String?;
       if (pendingRoute != null) {
         box.remove('pending_route');
-        // Navegar a la ruta pendiente (detalle del servicio)
-        Get.offAllNamed(pendingRoute);
-        // Si la ruta pendiente es de detalle de servicio, mostrar el carrito tras un pequeño delay
-        if (pendingRoute.startsWith('/services-capachica/detail/')) {
+        // Regresar a la pantalla anterior y luego navegar a la ruta pendiente
+        Get.back(); // Regresar del login
+        Get.toNamed(pendingRoute);
+        // Si la ruta pendiente es de detalle de servicio o plan, mostrar el carrito tras un pequeño delay
+        if (pendingRoute.startsWith('/services-capachica/detail/') || 
+            pendingRoute.startsWith('/plan-detalle')) {
           Future.delayed(const Duration(milliseconds: 600), () {
             final cartController = Get.find<CartController>();
             Get.bottomSheet(
@@ -64,7 +66,8 @@ class LoginController extends GetxController {
           });
         }
       } else {
-        Get.offAllNamed('/home');
+        Get.back(); // Regresar del login
+        Get.toNamed('/home');
       }
     } catch (e) {
       Get.snackbar(

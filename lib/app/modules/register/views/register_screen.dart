@@ -56,7 +56,8 @@ class RegisterScreen extends GetView<RegisterController> {
                       final pendingRoute = box.read('pending_route') as String?;
                       if (pendingRoute != null) {
                         box.remove('pending_route');
-                        Get.offAllNamed(pendingRoute);
+                        Get.back(); // Regresar del registro
+                        Get.toNamed(pendingRoute);
                       } else {
                         Get.back();
                       }

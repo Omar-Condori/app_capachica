@@ -96,8 +96,11 @@ class RegisterController extends GetxController {
       final pendingRoute = box.read('pending_route');
       if (pendingRoute != null) {
         box.remove('pending_route');
-        Get.offAllNamed(pendingRoute);
-        if (pendingRoute.startsWith('/services-capachica/detail/')) {
+        // Regresar a la pantalla anterior y luego navegar a la ruta pendiente
+        Get.back(); // Regresar del registro
+        Get.toNamed(pendingRoute);
+        if (pendingRoute.startsWith('/services-capachica/detail/') || 
+            pendingRoute.startsWith('/plan-detalle')) {
           Future.delayed(const Duration(milliseconds: 600), () {
             final cartController = Get.find<CartController>();
             Get.bottomSheet(
@@ -115,7 +118,8 @@ class RegisterController extends GetxController {
           });
         }
       } else {
-        Get.offAllNamed('/home');
+        Get.back(); // Regresar del registro
+        Get.toNamed('/home');
       }
     } catch (e) {
       Get.snackbar(

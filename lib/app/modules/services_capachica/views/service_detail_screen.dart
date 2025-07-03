@@ -277,10 +277,10 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
       box.write('pending_route', currentRoute);
       Get.dialog(AuthRedirectDialog(
         onLoginPressed: () {
-          Get.offAllNamed('/login');
+          Get.toNamed('/login');
         },
         onRegisterPressed: () {
-          Get.offAllNamed('/register');
+          Get.toNamed('/register');
         },
       ));
       return;

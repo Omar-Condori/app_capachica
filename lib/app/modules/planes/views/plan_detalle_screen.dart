@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import '../controllers/plan_detalle_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
@@ -273,12 +274,16 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
               final authService = Get.find<AuthService>();
               final cartController = Get.find<CartController>();
               if (!authService.isLoggedIn) {
+                // Guardar ruta pendiente y mostrar diálogo de login
+                final box = GetStorage();
+                final currentRoute = '/plan-detalle';
+                box.write('pending_route', currentRoute);
                 Get.dialog(AuthRedirectDialog(
                   onLoginPressed: () {
-                    Get.offAllNamed('/login');
+                    Get.toNamed('/login');
                   },
                   onRegisterPressed: () {
-                    Get.offAllNamed('/register');
+                    Get.toNamed('/register');
                   },
                 ));
                 return;

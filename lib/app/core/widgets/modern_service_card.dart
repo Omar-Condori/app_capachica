@@ -301,11 +301,11 @@ class ModernServiceCard extends StatelessWidget {
         AuthRedirectDialog(
           onLoginPressed: () {
             // Guardar la ruta pendiente para regresar después del login
-            Get.offAllNamed('/login');
+            Get.toNamed('/login');
           },
           onRegisterPressed: () {
             // Guardar la ruta pendiente para regresar después del registro
-            Get.offAllNamed('/register');
+            Get.toNamed('/register');
           },
         ),
       );
