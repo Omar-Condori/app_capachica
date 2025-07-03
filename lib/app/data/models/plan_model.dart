@@ -13,6 +13,8 @@ class Plan {
   final bool isActivo;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int? servicioId;
+  final int? emprendedorId;
 
   Plan({
     required this.id,
@@ -29,6 +31,8 @@ class Plan {
     required this.isActivo,
     this.createdAt,
     this.updatedAt,
+    this.servicioId,
+    this.emprendedorId,
   });
 
   factory Plan.fromJson(Map<String, dynamic> json) {
@@ -51,6 +55,8 @@ class Plan {
       updatedAt: json['updated_at'] != null 
           ? DateTime.tryParse(json['updated_at']) 
           : null,
+      servicioId: json['servicio_id'],
+      emprendedorId: json['emprendedor_id'],
     );
   }
 
@@ -70,6 +76,8 @@ class Plan {
       'is_activo': isActivo,
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
+      'servicio_id': servicioId,
+      'emprendedor_id': emprendedorId,
     };
   }
 } 

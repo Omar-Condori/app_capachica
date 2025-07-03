@@ -10,8 +10,10 @@ class HomeScreen extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? Color(0xFF101A30) : Color(0xFFF5F7FA),
       body: Stack(
         children: [
           // Imagen de fondo con overlay mejorado
@@ -23,7 +25,7 @@ class HomeScreen extends GetView<HomeController> {
                 image: AssetImage('assets/background_home.jpg'),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.2),
+                  Colors.black.withOpacity(isDark ? 0.5 : 0.2),
                   BlendMode.darken,
                 ),
               ),
@@ -39,10 +41,10 @@ class HomeScreen extends GetView<HomeController> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF1A237E).withOpacity(0.3),
-                  Color(0xFF3949AB).withOpacity(0.2),
-                  Color(0xFF1976D2).withOpacity(0.3),
-                  Colors.black.withOpacity(0.4),
+                  Color(0xFF1A237E).withOpacity(isDark ? 0.5 : 0.3),
+                  Color(0xFF3949AB).withOpacity(isDark ? 0.4 : 0.2),
+                  Color(0xFF1976D2).withOpacity(isDark ? 0.5 : 0.3),
+                  Colors.black.withOpacity(isDark ? 0.6 : 0.4),
                 ],
                 stops: [0.0, 0.3, 0.7, 1.0],
               ),
@@ -53,22 +55,73 @@ class HomeScreen extends GetView<HomeController> {
           SafeArea(
             child: Column(
               children: [
-                // Icono de carrito de compras en la esquina superior derecha
-                Container(
+                // Barra superior moderna
+                Align(
                   alignment: Alignment.topRight,
-                  margin: EdgeInsets.only(top: 8, right: 16),
-                  child: CartIconButton(iconColor: Colors.white, iconSize: 32),
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Bottom Content
-                      _buildBottomContent(screenWidth, screenHeight),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10, right: 18),
+                    child: CartIconButton(iconColor: Colors.white, iconSize: 22),
                   ),
                 ),
-
+                // Expanded con cards modernas para sliders y municipalidades
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Card de sliders (Tus viajes)
+                        Obx(() {
+                          final resumen = controller.resumenData.value;
+                          if (resumen == null || resumen.sliders.isEmpty) return SizedBox.shrink();
+                          return _buildModernCardSection(
+                            context,
+                            title: 'Tus viajes',
+                            child: SizedBox(
+                              height: 180,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                itemCount: resumen.sliders.length,
+                                separatorBuilder: (_, __) => SizedBox(width: 16),
+                                itemBuilder: (ctx, i) {
+                                  final slider = resumen.sliders[i];
+                                  return _buildSliderCard(slider, isDark);
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                        SizedBox(height: 18),
+                        // Card de municipalidades (Tus búsquedas recientes)
+                        Obx(() {
+                          final resumen = controller.resumenData.value;
+                          if (resumen == null || resumen.municipalidades.isEmpty) return SizedBox.shrink();
+                          return _buildModernCardSection(
+                            context,
+                            title: 'Tus búsquedas recientes',
+                            child: SizedBox(
+                              height: 120,
+                              child: ListView.separated(
+                                scrollDirection: Axis.horizontal,
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                itemCount: resumen.municipalidades.length,
+                                separatorBuilder: (_, __) => SizedBox(width: 16),
+                                itemBuilder: (ctx, i) {
+                                  final muni = resumen.municipalidades[i];
+                                  return _buildMunicipalidadCard(muni, isDark);
+                                },
+                              ),
+                            ),
+                          );
+                        }),
+                        SizedBox(height: 18),
+                        // El contenido original (título, subtítulo, botones)
+                        _buildBottomContentCentered(screenWidth, screenHeight),
+                      ],
+                    ),
+                  ),
+                ),
                 // Bottom Navigation (ahora con las opciones superiores)
                 _buildBottomNavigation(screenWidth),
               ],
@@ -96,15 +149,18 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget _buildBottomContent(double screenWidth, double screenHeight) {
+  Widget _buildBottomContentCentered(double screenWidth, double screenHeight) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+      width: double.infinity,
+      alignment: Alignment.center,
+      padding: EdgeInsets.only(top: screenHeight * 0.16, left: screenWidth * 0.08, right: screenWidth * 0.08, bottom: 0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Título principal con animación
+          // Título principal centrado
           Text(
             'Turismo\nCapachica',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
               fontSize: screenWidth < 400 ? 36 : 48,
@@ -125,12 +181,11 @@ class HomeScreen extends GetView<HomeController> {
               ],
             ),
           ),
-
           SizedBox(height: 12),
-
-          // Subtítulo
+          // Subtítulo centrado
           Text(
             'Descubre la magia del lago Titicaca',
+            textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
               fontSize: screenWidth < 400 ? 16 : 18,
@@ -145,18 +200,17 @@ class HomeScreen extends GetView<HomeController> {
               ],
             ),
           ),
-
-          SizedBox(height: screenHeight * 0.04),
-
-          // Botones de acción mejorados
+          SizedBox(height: screenHeight * 0.06),
+          // Botones de acción centrados y más abajo
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
                 child: _buildActionButton(
                   'Ver Planes',
                   Icons.map,
                   false,
-                      () => controller.onHotelsTap(),
+                  () => controller.onHotelsTap(),
                   screenWidth,
                 ),
               ),
@@ -166,7 +220,7 @@ class HomeScreen extends GetView<HomeController> {
                   'Servicios',
                   Icons.explore_outlined,
                   true,
-                      () => controller.onToursTap(),
+                  () => controller.onToursTap(),
                   screenWidth,
                 ),
               ),
@@ -287,6 +341,7 @@ class HomeScreen extends GetView<HomeController> {
   }
 
   Widget _buildBottomNavItem(IconData outlinedIcon, IconData filledIcon, String label, bool isSelected, double screenWidth) {
+    final selectedColor = Color(0xFFFF9100);
     return GestureDetector(
       onTap: () {
         if (label == 'Mi Perfil') {
@@ -309,13 +364,13 @@ class HomeScreen extends GetView<HomeController> {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(selectedColor),
                       ),
                     )
                   : Icon(
                       isSelected ? filledIcon : outlinedIcon,
                       key: ValueKey(isSelected),
-                      color: isSelected ? Colors.white : Colors.white60,
+                      color: isSelected ? selectedColor : Colors.white,
                       size: isSelected ? 26 : 24,
                     ),
             ),
@@ -323,7 +378,7 @@ class HomeScreen extends GetView<HomeController> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white60,
+                color: isSelected ? selectedColor : Colors.white,
                 fontSize: screenWidth < 400 ? 10 : 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 letterSpacing: 0.2,
@@ -631,6 +686,167 @@ class HomeScreen extends GetView<HomeController> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  // Agregar widgets auxiliares para cards modernas
+  Widget _buildModernCardSection(BuildContext context, {required String title, required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 8),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: isDark ? Colors.white : Color(0xFF222B45),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? Color(0xFF22325A) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSliderCard(slider, bool isDark) {
+    return Container(
+      width: 260,
+      decoration: BoxDecoration(
+        color: isDark ? Color(0xFF182447) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+        image: slider.imageUrl != null && slider.imageUrl.isNotEmpty
+            ? DecorationImage(
+                image: NetworkImage(slider.imageUrl),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.18),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.black.withOpacity(0.45) : Colors.white.withOpacity(0.85),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(18),
+                  bottomRight: Radius.circular(18),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    slider.title,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Color(0xFF222B45),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (slider.description != null && slider.description.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0),
+                      child: Text(
+                        slider.description,
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.grey[700],
+                          fontSize: 13,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMunicipalidadCard(muni, bool isDark) {
+    return Container(
+      width: 200,
+      decoration: BoxDecoration(
+        color: isDark ? Color(0xFF182447) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              muni.nombre,
+              style: TextStyle(
+                color: isDark ? Colors.white : Color(0xFF222B45),
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (muni.descripcion != null && muni.descripcion.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4.0),
+                child: Text(
+                  muni.descripcion,
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.grey[700],
+                    fontSize: 12,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
         ),
       ),
     );

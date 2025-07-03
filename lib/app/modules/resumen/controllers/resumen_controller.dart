@@ -15,6 +15,19 @@ class ResumenController extends GetxController {
   final resumenData = Rxn<ResumenData>();
   final resumenError = Rxn<String>();
 
+  // --- BÚSQUEDA ---
+  final searchText = ''.obs;
+
+  List<dynamic> get filteredMunicipalidades {
+    final query = searchText.value.trim().toLowerCase();
+    if (query.isEmpty) return resumenData.value?.municipalidades ?? [];
+    return (resumenData.value?.municipalidades ?? []).where((m) {
+      final nombre = (m.nombre ?? '').toLowerCase();
+      final frase = (m.frase ?? '').toLowerCase();
+      return nombre.contains(query) || frase.contains(query);
+    }).toList();
+  }
+
   @override
   void onInit() {
     super.onInit();

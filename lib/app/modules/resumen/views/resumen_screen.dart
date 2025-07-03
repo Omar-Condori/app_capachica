@@ -7,6 +7,8 @@ import '../../../core/widgets/apple_style_widgets.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
 import '../../../core/widgets/cart_icon_button.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ResumenScreen extends GetView<ResumenController> {
   const ResumenScreen({super.key});
@@ -14,54 +16,169 @@ class ResumenScreen extends GetView<ResumenController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'Capachica',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.5,
-          ),
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: theme.textTheme.bodyLarge?.color,
-          ),
-          onPressed: () => Get.back(),
-        ),
-        actions: [
-          CartIconButton(),
-          IconButton(
-            icon: Icon(
-              Icons.refresh_rounded,
-              color: theme.textTheme.bodyLarge?.color,
+      backgroundColor: isDark ? Color(0xFF101A30) : Color(0xFFF5F7FA),
+      body: Column(
+        children: [
+          // Barra superior moderna naranja
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(left: 8, right: 8, top: MediaQuery.of(context).padding.top + 10, bottom: 18),
+            decoration: BoxDecoration(
+              color: Color(0xFFFF9100),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
             ),
-            onPressed: () => controller.loadResumen(),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                  onPressed: () => Get.back(),
+                ),
+                SizedBox(width: 4),
+                Text(
+                  'Capachica Travel',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Spacer(),
+                CartIconButton(iconColor: Colors.white),
+                IconButton(
+                  icon: Icon(Icons.refresh_rounded, color: Colors.white),
+                  onPressed: () => controller.loadResumen(),
+                ),
+                // El botón de modo claro/oscuro debe funcionar correctamente
+                Builder(
+                  builder: (context) => ThemeToggleButton(),
+                ),
+              ],
+            ),
           ),
-          const ThemeToggleButton(),
+          // Barra de búsqueda moderna
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.transparent, width: 0),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Material(
+              elevation: 3,
+              borderRadius: BorderRadius.circular(30),
+              color: isDark ? Color(0xFF22325A) : Colors.white,
+              child: TextField(
+                onChanged: (value) => controller.searchText.value = value,
+                decoration: InputDecoration(
+                  hintText: '¿A dónde quieres ir?',
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.grey[600],
+                    fontWeight: FontWeight.w400,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: isDark ? Colors.white : Colors.grey[700]),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 16),
+                ),
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+          // Expanded con cards modernas para banners, municipalidades y detalles
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return _buildLoadingState(context);
+              }
+              if (controller.resumenError.value != null) {
+                return _buildErrorState(context);
+              }
+              final resumenData = controller.resumenData.value;
+              if (resumenData == null) {
+                return _buildEmptyState(context);
+              }
+              return RefreshIndicator(
+                onRefresh: () async => controller.loadResumen(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: 24),
+                  children: [
+                    // Card de banners
+                    if (resumenData.sliders.isNotEmpty)
+                      _buildModernCardSection(
+                        context,
+                        title: 'Banners Promocionales',
+                        subtitle: 'Descubre las mejores ofertas',
+                        child: SizedBox(
+                          height: 200,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: resumenData.sliders.length,
+                            separatorBuilder: (_, __) => SizedBox(width: 16),
+                            itemBuilder: (ctx, i) {
+                              final slider = resumenData.sliders[i];
+                              return _buildSliderCard(slider, isDark);
+                            },
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 18),
+                    // Card de municipalidades (con toda la info detallada y sliders internos)
+                    Obx(() {
+                      final filtered = controller.filteredMunicipalidades;
+                      if (filtered.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text('No se encontraron resultados', style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: filtered.map<Widget>((muni) {
+                          return _buildModernCardSection(
+                            context,
+                            title: muni.nombre,
+                            subtitle: (muni.frase ?? '').isNotEmpty ? '"${muni.frase}"' : null,
+                            child: _buildMunicipalidadFullCard(context, muni, isDark),
+                          );
+                        }).toList(),
+                      );
+                    }),
+                    SizedBox(height: 18),
+                    // Card de detalles de la primera municipalidad
+                    if (resumenData.primeraMunicipalidadDetalle != null)
+                      _buildModernCardSection(
+                        context,
+                        title: 'Detalles de ${resumenData.primeraMunicipalidadDetalle!.municipalidad.nombre}',
+                        subtitle: 'Información completa y servicios disponibles',
+                        child: _buildMunicipalidadDetalleSection(context, resumenData.primeraMunicipalidadDetalle!),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return _buildLoadingState(context);
-        }
-
-        if (controller.resumenError.value != null) {
-          return _buildErrorState(context);
-        }
-
-        final resumenData = controller.resumenData.value;
-        if (resumenData == null) {
-          return _buildEmptyState(context);
-        }
-
-        return _buildContent(context, resumenData);
-      }),
     );
   }
 
@@ -187,166 +304,215 @@ class ResumenScreen extends GetView<ResumenController> {
     );
   }
 
-  Widget _buildContent(BuildContext context, ResumenData resumenData) {
-    return RefreshIndicator(
-      onRefresh: () async => controller.loadResumen(),
-      child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          // Header con estado del sistema
-          SliverToBoxAdapter(
-            child: _buildHealthCheckSection(context, resumenData),
-          ),
-          
-          // Sección de banners promocionales
-          if (resumenData.sliders.isNotEmpty)
-            SliverToBoxAdapter(
-              child: _buildSlidersSection(context, resumenData.sliders),
-            ),
-          
-          // Sección de municipalidades
-          SliverToBoxAdapter(
-            child: _buildMunicipalidadesSection(context, resumenData.municipalidades),
-          ),
-          
-          // Sección de detalles de la primera municipalidad
-          if (resumenData.primeraMunicipalidadDetalle != null)
-            SliverToBoxAdapter(
-              child: _buildMunicipalidadDetalleSection(
-                context, 
-                resumenData.primeraMunicipalidadDetalle!
+  Widget _buildModernCardSection(BuildContext context, {required String title, String? subtitle, required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 8, bottom: 4),
+            child: Text(
+              title,
+              style: TextStyle(
+                color: isDark ? Colors.white : Color(0xFFFF9100),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
               ),
             ),
-          
-          // Espacio final
-          const SliverToBoxAdapter(
-            child: SizedBox(height: 40),
+          ),
+          if (subtitle != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 8, bottom: 8),
+              child: Text(
+                subtitle,
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Color(0xFFFF9100),
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? Color(0xFF22325A) : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: child,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHealthCheckSection(BuildContext context, ResumenData resumenData) {
-    return AppleSection(
-      title: 'Estado del Sistema',
-      subtitle: 'Verificando conectividad y servicios',
-      crossAxisAlignment: CrossAxisAlignment.center,
-      child: AppleStatusIndicator(
-        title: 'API Funcionando',
-        message: resumenData.healthCheck.message ?? 'Todos los servicios están operativos',
-        icon: Icons.check_circle_rounded,
-        color: Colors.green,
-        isSuccess: true,
+  Widget _buildSliderCard(slider, bool isDark) {
+    return Container(
+      width: 320,
+      decoration: BoxDecoration(
+        color: isDark ? Color(0xFF182447) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+        image: slider.urlCompleta != null && slider.urlCompleta.isNotEmpty
+            ? DecorationImage(
+                image: NetworkImage(slider.urlCompleta),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(
+                  Colors.black.withOpacity(0.18),
+                  BlendMode.darken,
+                ),
+              )
+            : null,
       ),
+      child: slider.urlCompleta != null && slider.urlCompleta.isNotEmpty
+          ? SizedBox.shrink()
+          : Center(
+              child: Icon(Icons.image_rounded, size: 64, color: isDark ? Colors.white30 : Colors.grey[300]),
+            ),
     );
   }
 
-  Widget _buildSlidersSection(BuildContext context, List<dynamic> sliders) {
-    return AppleSection(
-      title: 'Banners Promocionales',
-      subtitle: 'Descubre las mejores ofertas',
-      child: AppleCarousel(
-        height: 240,
-        itemWidth: 320,
-        children: sliders.map((slider) {
-          return AppleCard(
-            padding: EdgeInsets.zero,
-            borderRadius: 20,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Stack(
-                children: [
-                  // Imagen de fondo con gradiente
-                  Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Theme.of(context).primaryColor,
-                          Theme.of(context).primaryColor.withValues(alpha: 0.8),
-                        ],
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.image_rounded,
-                      size: 64,
-                      color: Colors.white.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  
-                  // Overlay con contenido
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
-                        ],
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          slider.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                        if (slider.description != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            slider.description!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
+  Widget _buildMunicipalidadFullCard(BuildContext context, muni, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sliders internos
+          if (muni.slidersPrincipales != null && muni.slidersPrincipales.isNotEmpty)
+            SizedBox(
+              height: 140,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: muni.slidersPrincipales.length,
+                separatorBuilder: (_, __) => SizedBox(width: 12),
+                itemBuilder: (ctx, i) {
+                  final slider = muni.slidersPrincipales[i];
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: slider.urlCompleta != null && slider.urlCompleta.isNotEmpty
+                        ? Image.network(
+                            slider.urlCompleta,
+                            fit: BoxFit.cover,
+                            width: 220,
+                            height: 140,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: Colors.grey[200],
+                              child: Center(child: Icon(Icons.image_not_supported, color: Colors.grey)),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          )
+                        : Container(
+                            width: 220,
+                            height: 140,
+                            color: Color(0xFFFF9100).withOpacity(0.15),
+                            child: Icon(Icons.image_rounded, size: 48, color: Color(0xFFFF9100)),
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildMunicipalidadesSection(BuildContext context, List<dynamic> municipalidades) {
-    return AppleSection(
-      title: 'Municipalidades',
-      subtitle: 'Explora las diferentes zonas de Capachica',
-      child: Column(
-        children: municipalidades.map((municipalidad) {
-          return AppleListTile(
-            title: municipalidad.nombre,
-            subtitle: municipalidad.descripcion ?? municipalidad.ubicacion,
-            leadingIcon: Icons.business_rounded,
-            leadingIconColor: Theme.of(context).primaryColor,
-            onTap: () {
-              Get.snackbar(
-                'Municipalidad',
-                'Detalles de ${municipalidad.nombre}',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Theme.of(context).primaryColor,
-                colorText: Colors.white,
-              );
-            },
-          );
-        }).toList(),
+          if (muni.descripcion != null && muni.descripcion.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              muni.descripcion,
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87,
+                fontSize: 14,
+              ),
+            ),
+          ],
+          if ((muni.mision != null && muni.mision.isNotEmpty) || (muni.vision != null && muni.vision.isNotEmpty) || (muni.valores != null && muni.valores.isNotEmpty)) ...[
+            const SizedBox(height: 10),
+            _buildMisionVisionValores(context, mision: muni.mision, vision: muni.vision, valores: muni.valores),
+          ],
+          // Redes sociales
+          if ((muni.redFacebook != null && muni.redFacebook.isNotEmpty) || (muni.redInstagram != null && muni.redInstagram.isNotEmpty) || (muni.redYoutube != null && muni.redYoutube.isNotEmpty)) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                if (muni.redFacebook != null && muni.redFacebook.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.facebook, color: Colors.blue[800]),
+                    onPressed: () => launchUrlString(muni.redFacebook, mode: LaunchMode.externalApplication),
+                  ),
+                if (muni.redInstagram != null && muni.redInstagram.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.camera_alt, color: Colors.purple),
+                    onPressed: () => launchUrlString(muni.redInstagram, mode: LaunchMode.externalApplication),
+                  ),
+                if (muni.redYoutube != null && muni.redYoutube.isNotEmpty)
+                  IconButton(
+                    icon: Icon(Icons.play_circle_fill, color: Colors.red),
+                    onPressed: () => launchUrlString(muni.redYoutube, mode: LaunchMode.externalApplication),
+                  ),
+              ],
+            ),
+          ],
+          if (muni.comunidades != null && muni.comunidades.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Comunidades:', style: TextStyle(color: Color(0xFFFF9100), fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(muni.comunidades, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          ],
+          if (muni.historiaFamilias != null && muni.historiaFamilias.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Historia de las Familias:', style: TextStyle(color: Color(0xFFFF9100), fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(muni.historiaFamilias, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          ],
+          if (muni.historiaCapachica != null && muni.historiaCapachica.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Historia de Capachica:', style: TextStyle(color: Color(0xFFFF9100), fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(muni.historiaCapachica, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          ],
+          if (muni.comite != null && muni.comite.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Comité de Turismo:', style: TextStyle(color: Color(0xFFFF9100), fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(muni.comite, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          ],
+          if (muni.alianzas != null && muni.alianzas.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Alianzas:', style: TextStyle(color: Color(0xFFFF9100), fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(muni.alianzas, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          ],
+          if (muni.ordenanzaMunicipal != null && muni.ordenanzaMunicipal.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Ordenanza Municipal:', style: TextStyle(color: Color(0xFFFF9100), fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(muni.ordenanzaMunicipal, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          ],
+          if (muni.correo != null && muni.correo.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.email, color: Color(0xFFFF9100)),
+                const SizedBox(width: 6),
+                Text(muni.correo, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+              ],
+            ),
+          ],
+          if (muni.horarioDeAtencion != null && muni.horarioDeAtencion.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.access_time, color: Color(0xFFFF9100)),
+                const SizedBox(width: 6),
+                Text(muni.horarioDeAtencion, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -526,6 +692,87 @@ class ResumenScreen extends GetView<ResumenController> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildMisionVisionValores(BuildContext context, {required String? mision, required String? vision, required String? valores}) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (mision != null && mision.isNotEmpty)
+          _buildInfoCard(
+            context,
+            icon: Icons.flag_rounded,
+            title: 'Misión',
+            color: Color(0xFFFF9100),
+            content: mision,
+          ),
+        if (vision != null && vision.isNotEmpty) ...[
+          SizedBox(height: 14),
+          _buildInfoCard(
+            context,
+            icon: Icons.visibility_rounded,
+            title: 'Visión',
+            color: Color(0xFF1976D2),
+            content: vision,
+          ),
+        ],
+        if (valores != null && valores.isNotEmpty) ...[
+          SizedBox(height: 14),
+          _buildInfoCard(
+            context,
+            icon: Icons.star_rounded,
+            title: 'Valores',
+            color: Color(0xFF43A047),
+            contentWidget: Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: valores.split(',').map((valor) => Chip(
+                label: Text(valor.trim(), style: TextStyle(fontWeight: FontWeight.w500)),
+                backgroundColor: Color(0xFF43A047).withOpacity(0.1),
+              )).toList(),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context, {required IconData icon, required String title, required Color color, String? content, Widget? contentWidget}) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: color, size: 28),
+                SizedBox(width: 10),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            if (content != null)
+              Text(
+                content,
+                style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15),
+              ),
+            if (contentWidget != null) contentWidget,
+          ],
+        ),
+      ),
     );
   }
 } 

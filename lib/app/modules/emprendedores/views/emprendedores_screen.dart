@@ -13,87 +13,164 @@ class EmprendedoresScreen extends GetView<EmprendedoresController> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Emprendedores',
-          style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Get.back(),
-        ),
-        actions: [
-          Obx(() {
-            final cartController = Get.find<CartController>();
-            final count = cartController.reservas.length;
-            return Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      builder: (_) => CartBottomSheet(
-                        reservas: cartController.reservas,
-                        onEliminar: cartController.eliminarReserva,
-                        onEditar: cartController.editarReserva,
-                        onConfirmar: cartController.confirmarReservas,
-                      ),
-                    );
-                  },
-                ),
-                if (count > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Text(
-                        '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }),
-          IconButton(
-            icon: Icon(Icons.refresh, color: AppColors.primary),
-            onPressed: () => controller.refreshData(),
-          ),
-          const ThemeToggleButton(),
-        ],
-      ),
+      backgroundColor: isDark ? Color(0xFF101A30) : Color(0xFFF5F7FA),
       body: Column(
         children: [
-          // Barra de búsqueda y filtros
-          _buildSearchAndFilters(),
-          
+          // HEADER MODERNO
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(left: 8, right: 8, top: MediaQuery.of(context).padding.top + 10, bottom: 18),
+            decoration: BoxDecoration(
+              color: Color(0xFFFF9100),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+                  onPressed: () => Get.back(),
+                ),
+                SizedBox(width: 4),
+                Text(
+                  'Capachica Travel',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                Spacer(),
+                Obx(() {
+                  final cartController = Get.find<CartController>();
+                  final count = cartController.reservas.length;
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.shopping_cart_outlined, size: 22),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                            ),
+                            builder: (_) => CartBottomSheet(
+                              reservas: cartController.reservas,
+                              onEliminar: cartController.eliminarReserva,
+                              onEditar: cartController.editarReserva,
+                              onConfirmar: cartController.confirmarReservas,
+                            ),
+                          );
+                        },
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                }),
+                IconButton(
+                  icon: Icon(Icons.refresh_rounded, color: Colors.white),
+                  onPressed: () => controller.refreshData(),
+                ),
+                ThemeToggleButton(),
+              ],
+            ),
+          ),
+          // Buscador y filtros modernos
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            child: Column(
+              children: [
+                // Buscador
+                Material(
+                  elevation: 3,
+                  borderRadius: BorderRadius.circular(30),
+                  color: isDark ? Color(0xFF22325A) : Colors.white,
+                  child: TextField(
+                    onChanged: (value) {
+                      if (value.isEmpty) {
+                        controller.clearFilters();
+                      } else {
+                        controller.searchEmprendedores(value);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Buscar emprendedores...',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.grey[600],
+                        fontWeight: FontWeight.w400,
+                      ),
+                      prefixIcon: Icon(Icons.search, color: isDark ? Colors.white : Color(0xFFFF9100)),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Filtros tipo chip
+                Obx(() {
+                  if (controller.categorias.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildCategoriaChipModern('', 'Todos', selected: controller.selectedCategoria.value == ''),
+                        const SizedBox(width: 8),
+                        ...controller.categorias.map((categoria) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: _buildCategoriaChipModern(categoria, categoria, selected: controller.selectedCategoria.value == categoria),
+                        )),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
           // Contenido principal
           Expanded(
             child: Obx(() {
@@ -104,7 +181,7 @@ class EmprendedoresScreen extends GetView<EmprendedoresController> {
               } else if (!controller.hasEmprendedores) {
                 return _buildEmptyState();
               } else {
-                return _buildEmprendedoresList();
+                return _buildEmprendedoresListModern(context, isDark);
               }
             }),
           ),
@@ -113,120 +190,121 @@ class EmprendedoresScreen extends GetView<EmprendedoresController> {
     );
   }
 
-  Widget _buildSearchAndFilters() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // Barra de búsqueda
-          _buildSearchBar(),
-          const SizedBox(height: 12),
-          // Filtros por categoría
-          _buildCategoriaFilter(),
-        ],
-      ),
+  Widget _buildCategoriaChipModern(String value, String label, {bool selected = false}) {
+    return ChoiceChip(
+      label: Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: selected ? Colors.white : Color(0xFFFF9100))),
+      selected: selected,
+      selectedColor: Color(0xFFFF9100),
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: BorderSide(color: Color(0xFFFF9100), width: 1)),
+      onSelected: (_) => controller.filterByCategoria(value),
+      elevation: selected ? 4 : 0,
+      pressElevation: 0,
     );
   }
 
-  Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  Widget _buildEmprendedoresListModern(BuildContext context, bool isDark) {
+    return ListView.separated(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: controller.filteredEmprendedores.length,
+      separatorBuilder: (_, __) => SizedBox(height: 18),
+      itemBuilder: (ctx, i) {
+        final emprendedor = controller.filteredEmprendedores[i];
+        return Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+          color: isDark ? Color(0xFF22325A) : Colors.white,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            onTap: () => controller.navigateToDetail(emprendedor),
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFF9100).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(Icons.store_rounded, color: Colors.white, size: 32),
+                  ),
+                  SizedBox(width: 18),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          emprendedor.nombre,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.category_rounded, color: Color(0xFFFF9100), size: 18),
+                            SizedBox(width: 4),
+                            Text(
+                              emprendedor.tipoServicio,
+                              style: TextStyle(
+                                color: Color(0xFFFF9100),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_rounded, color: isDark ? Colors.white54 : Colors.grey[500], size: 16),
+                            SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                emprendedor.ubicacion,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Colors.grey[700],
+                                  fontSize: 14,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Chip(
+                              label: Text(
+                                emprendedor.estado ? 'Activo' : 'Inactivo',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              backgroundColor: emprendedor.estado ? Color(0xFF43A047) : Colors.grey,
+                              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
-      child: TextField(
-        onChanged: (value) {
-          if (value.isEmpty) {
-            controller.clearFilters();
-          } else {
-            controller.searchEmprendedores(value);
-          }
-        },
-        decoration: InputDecoration(
-          hintText: 'Buscar emprendedores...',
-          prefixIcon: Icon(Icons.search, color: AppColors.primary),
-          suffixIcon: Obx(() => controller.searchQuery.value.isNotEmpty
-              ? IconButton(
-                  icon: Icon(Icons.clear, color: Colors.grey),
-                  onPressed: () => controller.clearFilters(),
-                )
-              : const SizedBox.shrink()),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        ),
-      ),
+        );
+      },
     );
-  }
-
-  Widget _buildCategoriaFilter() {
-    return Obx(() {
-      if (controller.categorias.isEmpty) {
-        return const SizedBox.shrink();
-      }
-
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            // Botón "Todos"
-            _buildCategoriaChip('', 'Todos'),
-            const SizedBox(width: 8),
-            // Chips de categorías
-            ...controller.categorias.map((categoria) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _buildCategoriaChip(categoria, categoria),
-            )),
-          ],
-        ),
-      );
-    });
-  }
-
-  Widget _buildCategoriaChip(String categoria, String label) {
-    return Obx(() {
-      final isSelected = controller.selectedCategoria.value == categoria;
-      
-      return FilterChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.primary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-        selected: isSelected,
-        onSelected: (selected) {
-          if (selected) {
-            controller.filterByCategoria(categoria);
-          } else {
-            controller.clearFilters();
-          }
-        },
-        backgroundColor: Colors.white,
-        selectedColor: AppColors.primary,
-        checkmarkColor: Colors.white,
-        side: BorderSide(color: AppColors.primary),
-        elevation: isSelected ? 4 : 1,
-        pressElevation: 2,
-      );
-    });
   }
 
   Widget _buildLoadingState() {
@@ -324,64 +402,5 @@ class EmprendedoresScreen extends GetView<EmprendedoresController> {
         ],
       ),
     );
-  }
-
-  Widget _buildEmprendedoresList() {
-    return Obx(() {
-      final emprendedores = controller.filteredEmprendedores;
-      
-      return Column(
-        children: [
-          // Contador de resultados
-          if (controller.hasSearchResults || controller.hasCategoriaFilter)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Text(
-                    '${emprendedores.length} emprendedor${emprendedores.length != 1 ? 'es' : ''} encontrado${emprendedores.length != 1 ? 's' : ''}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (controller.hasSearchResults || controller.hasCategoriaFilter)
-                    TextButton.icon(
-                      onPressed: () => controller.clearFilters(),
-                      icon: const Icon(Icons.clear, size: 16),
-                      label: const Text('Limpiar filtros'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          
-          // Lista de emprendedores
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => controller.refreshData(),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: emprendedores.length,
-                itemBuilder: (context, index) {
-                  final emprendedor = emprendedores[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: EmprendedorCard(
-                      emprendedor: emprendedor,
-                      onTap: () => controller.navigateToDetail(emprendedor),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      );
-    });
   }
 } 

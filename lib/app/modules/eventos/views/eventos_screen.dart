@@ -4,6 +4,7 @@ import '../controllers/eventos_controller.dart';
 import 'evento_card.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
+import '../../../core/widgets/theme_toggle_button.dart';
 
 class EventosScreen extends GetView<EventosController> {
   @override
@@ -89,6 +90,7 @@ class EventosScreen extends GetView<EventosController> {
             ),
             onPressed: () => controller.refreshEventos(),
           ),
+          ThemeToggleButton(),
         ],
       ),
       body: Column(

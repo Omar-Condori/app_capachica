@@ -90,28 +90,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             appBar: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  onPressed: () {
-                    final cartController = Get.find<CartController>();
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      builder: (_) => CartBottomSheet(
-                        reservas: cartController.reservas,
-                        onEliminar: cartController.eliminarReserva,
-                        onEditar: cartController.editarReserva,
-                        onConfirmar: cartController.confirmarReservas,
-                      ),
-                    );
-                  },
-                ),
-                const ThemeToggleButton(),
-              ],
+              // Sin iconos de carrito ni modo noche/día
             ),
             body: Container(
               decoration: BoxDecoration(

@@ -346,8 +346,8 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                             final detalle = controller.planDetalle.value!;
                             final reserva = ReservaModel(
                               id: DateTime.now().millisecondsSinceEpoch, // ID temporal
-                              servicioId: detalle.plan.id,
-                              emprendedorId: 0, // No hay emprendedor directo en plan
+                              servicioId: detalle.plan.servicioId ?? 0, // Usar el servicioId real
+                              emprendedorId: detalle.plan.emprendedorId ?? 0, // Usar el emprendedorId real
                               fechaInicio: fechaController.text,
                               fechaFin: fechaController.text,
                               horaInicio: horaInicioController.text,
@@ -360,15 +360,15 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                               precioTotal: detalle.plan.precio ?? 0,
                               createdAt: DateTime.now(),
                               servicio: ServicioReserva(
-                                id: detalle.plan.id,
+                                id: detalle.plan.servicioId ?? 0,
                                 nombre: detalle.plan.titulo,
                                 descripcion: detalle.plan.descripcion ?? '',
                                 precioReferencial: detalle.plan.precio ?? 0,
                                 imagenUrl: detalle.plan.imagenUrl,
                               ),
-                              emprendedor: null, // No hay emprendedor directo en plan
+                              emprendedor: null, // Puedes mapear el emprendedor si lo tienes
                             );
-                            cartController.agregarReserva(reserva);
+                            await cartController.agregarReserva(reserva);
                             Get.back();
                             Future.delayed(const Duration(milliseconds: 300), () {
                               Get.bottomSheet(

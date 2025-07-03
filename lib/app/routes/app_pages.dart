@@ -29,6 +29,7 @@ import '../modules/eventos/bindings/eventos_binding.dart';
 import '../modules/eventos/views/eventos_screen.dart';
 import '../modules/eventos/views/evento_detail_screen.dart';
 import '../modules/eventos/controllers/eventos_controller.dart';
+import '../modules/carrito/views/carrito_screen.dart';
 import 'app_routes.dart';
 import '../modules/profile/views/profile_screen.dart';
 
@@ -165,6 +166,12 @@ class AppPages {
       customTransition: FadeScaleTransition(),
     ),
     GetPage(
+      name: AppRoutes.CARRITO,
+      page: () => const CarritoScreen(),
+      transitionDuration: const Duration(milliseconds: 400),
+      customTransition: FadeScaleTransition(),
+    ),
+    GetPage(
       name: AppRoutes.EMPRENDEDORES,
       page: () => EmprendedoresScreen(),
       binding: EmprendedoresBinding(),
@@ -260,6 +267,7 @@ abstract class Routes {
   static const PLANES = _Paths.PLANES;
   static const PLAN_DETALLE = _Paths.PLAN_DETALLE;
   static const MIS_RESERVAS = _Paths.MIS_RESERVAS;
+  static const CARRITO = _Paths.CARRITO;
   static const EMPRENDEDORES = _Paths.EMPRENDEDORES;
   static const EVENTOS = _Paths.EVENTOS;
 }
@@ -275,6 +283,7 @@ abstract class _Paths {
   static const PLANES = '/planes';
   static const PLAN_DETALLE = '/plan-detalle';
   static const MIS_RESERVAS = '/mis-reservas';
+  static const CARRITO = '/carrito';
   static const EMPRENDEDORES = '/emprendedores';
   static const EVENTOS = '/eventos';
 }
