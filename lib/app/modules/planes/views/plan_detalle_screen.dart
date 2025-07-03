@@ -214,8 +214,8 @@ class PlanDetalleScreen extends GetView<PlanDetalleController> {
                 const SizedBox(height: 8),
                 ...detalle.informacionAdicional!.entries.map((e) => ListTile(
                   leading: Icon(Icons.info_outline, color: AppColors.primary),
-                  title: Text(e.key),
-                  subtitle: Text(e.value),
+                  title: Text(e.key.toString()),
+                  subtitle: Text(e.value?.toString() ?? ''),
                 )),
                 const SizedBox(height: 16),
               ],
