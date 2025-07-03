@@ -15,13 +15,19 @@ class EmprendedoresController extends GetxController {
   final searchQuery = ''.obs;
   final selectedCategoria = ''.obs;
   final isSearching = false.obs;
+  final error = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
     print('🏪 EmprendedoresController: Inicializando...');
-    loadEmprendedores();
+    cargarEmprendedores();
     loadCategorias();
+  }
+
+  // Método para cargar emprendedores (alias para compatibilidad)
+  Future<void> cargarEmprendedores() async {
+    await loadEmprendedores();
   }
 
   @override

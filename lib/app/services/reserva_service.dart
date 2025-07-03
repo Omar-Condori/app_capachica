@@ -1,436 +1,205 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import '../data/models/reserva_model.dart';
 import '../core/config/backend_config.dart';
+import 'auth_service.dart';
 
 class ReservaService extends GetxService {
-  final _storage = GetStorage();
-  static String _baseUrl = BackendConfig.defaultBaseUrl;
-  
+  final _authService = Get.find<AuthService>();
+
   // Getter para obtener la URL actual
-  String get baseUrl => _baseUrl;
-  
-  // Método para cambiar la URL del backend
-  void setBaseUrl(String url) {
-    _baseUrl = url;
-    print('[ReservaService] URL del backend cambiada a: $_baseUrl');
-  }
+  String get baseUrl => BackendConfig.getBaseUrl();
 
-  // Obtener token de autenticación
-  String? get _token => _storage.read('token');
+  // Verificar si el usuario está autenticado
+  bool get isAuthenticated => _authService.token != null;
 
-  // Headers con autenticación
-  Map<String, String> get _authHeaders => {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    if (_token != null) 'Authorization': 'Bearer $_token',
-  };
+  // Lista local para simular el carrito
+  final List<Map<String, dynamic>> _carritoLocal = [];
+  final List<Map<String, dynamic>> _reservasLocal = [];
 
-  // POST /api/reservas/carrito/agregar
-  Future<Map<String, dynamic>> agregarAlCarrito(AgregarAlCarritoRequest request) async {
+  // Obtener reservas del carrito
+  List<Map<String, dynamic>> get reservasCarrito => _carritoLocal;
+
+  // Obtener carrito
+  Future<Map<String, dynamic>> obtenerCarrito() async {
     try {
-      print('[ReservaService] Agregando al carrito: ${request.toJson()}');
-      
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/reservas/carrito/agregar'),
-        headers: _authHeaders,
-        body: jsonEncode(request.toJson()),
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta agregar al carrito - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      final total = _carritoLocal.fold(0.0, (sum, item) => sum + (item['precioTotal'] ?? 0.0));
+      return {
+        'items': _carritoLocal,
+        'total': total,
+        'cantidadItems': _carritoLocal.length,
+      };
     } catch (e) {
-      print('[ReservaService] Error agregando al carrito: $e');
-      rethrow;
+      print('Error al obtener carrito: $e');
+      return {
+        'items': [],
+        'total': 0.0,
+        'cantidadItems': 0,
+      };
     }
   }
 
-  // GET /api/reservas/carrito
-  Future<CarritoResponse> obtenerCarrito() async {
+  // Obtener total del carrito
+  double get totalCarrito {
+    return _carritoLocal.fold(0.0, (sum, item) => sum + (item['precioTotal'] ?? 0.0));
+  }
+
+  // Agregar al carrito
+  Future<Map<String, dynamic>> agregarAlCarrito(Map<String, dynamic> reserva) async {
     try {
-      print('[ReservaService] Obteniendo carrito...');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/reservas/carrito'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta obtener carrito - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return CarritoResponse.fromJson(responseData);
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      _carritoLocal.add(reserva);
+      return {
+        'success': true,
+        'message': 'Servicio agregado al carrito exitosamente',
+        'data': reserva,
+      };
     } catch (e) {
-      print('[ReservaService] Error obteniendo carrito: $e');
-      rethrow;
+      print('Error al agregar al carrito: $e');
+      return {
+        'success': false,
+        'message': 'Error al agregar al carrito: $e',
+      };
     }
   }
 
-  // GET /api/reservas/mis-reservas
-  Future<List<ReservaModel>> obtenerMisReservas() async {
+  // Eliminar del carrito
+  Future<Map<String, dynamic>> eliminarDelCarrito(Map<String, dynamic> reserva) async {
     try {
-      print('[ReservaService] Obteniendo mis reservas...');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/reservas/mis-reservas'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta mis reservas - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> reservasData = responseData['reservas'] ?? responseData;
-        return reservasData.map((item) => ReservaModel.fromJson(item)).toList();
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      _carritoLocal.removeWhere((item) => item['servicioId'] == reserva['servicioId']);
+      return {
+        'success': true,
+        'message': 'Servicio eliminado del carrito exitosamente',
+      };
     } catch (e) {
-      print('[ReservaService] Error obteniendo mis reservas: $e');
-      rethrow;
+      print('Error al eliminar del carrito: $e');
+      return {
+        'success': false,
+        'message': 'Error al eliminar del carrito: $e',
+      };
     }
   }
 
-  // DELETE /api/reservas/carrito/servicio/{id}
-  Future<Map<String, dynamic>> eliminarDelCarrito(int servicioId) async {
-    try {
-      print('[ReservaService] Eliminando del carrito servicio ID: $servicioId');
-      
-      final response = await http.delete(
-        Uri.parse('$_baseUrl/api/reservas/carrito/servicio/$servicioId'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta eliminar del carrito - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
-    } catch (e) {
-      print('[ReservaService] Error eliminando del carrito: $e');
-      rethrow;
-    }
-  }
-
-  // DELETE /api/reservas/carrito/vaciar
+  // Vaciar carrito
   Future<Map<String, dynamic>> vaciarCarrito() async {
     try {
-      print('[ReservaService] Vaciando carrito...');
-      
-      final response = await http.delete(
-        Uri.parse('$_baseUrl/api/reservas/carrito/vaciar'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta vaciar carrito - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      _carritoLocal.clear();
+      return {
+        'success': true,
+        'message': 'Carrito vaciado exitosamente',
+      };
     } catch (e) {
-      print('[ReservaService] Error vaciando carrito: $e');
-      rethrow;
+      print('Error al vaciar carrito: $e');
+      return {
+        'success': false,
+        'message': 'Error al vaciar carrito: $e',
+      };
     }
   }
 
-  // POST /api/reservas/carrito/confirmar
-  Future<Map<String, dynamic>> confirmarReserva(ConfirmarReservaRequest request) async {
+  // Confirmar reserva
+  Future<Map<String, dynamic>> confirmarReserva(Map<String, dynamic> request) async {
     try {
-      print('[ReservaService] Confirmando reserva: ${request.toJson()}');
-      
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/reservas/carrito/confirmar'),
-        headers: _authHeaders,
-        body: jsonEncode(request.toJson()),
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta confirmar reserva - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      // Simular confirmación exitosa
+      final reserva = {
+        ...request,
+        'id': DateTime.now().millisecondsSinceEpoch,
+        'estado': 'confirmada',
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+      _reservasLocal.add(reserva);
+      return {
+        'success': true,
+        'message': 'Reserva confirmada exitosamente',
+        'data': reserva,
+      };
     } catch (e) {
-      print('[ReservaService] Error confirmando reserva: $e');
-      rethrow;
+      print('Error al confirmar reserva: $e');
+      return {
+        'success': false,
+        'message': 'Error al confirmar reserva: $e',
+      };
     }
   }
 
-  // GET /api/reservas/emprendedor/{emprendedorId}
-  Future<List<ReservaModel>> obtenerReservasEmprendedor(int emprendedorId) async {
+  // Limpiar carrito
+  void limpiarCarrito() {
+    _carritoLocal.clear();
+  }
+
+  // Confirmar reservas del carrito
+  Future<bool> confirmarReservas(String metodoPago, {String? notas}) async {
     try {
-      print('[ReservaService] Obteniendo reservas del emprendedor ID: $emprendedorId');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/reservas/emprendedor/$emprendedorId'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta reservas emprendedor - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> reservasData = responseData['reservas'] ?? responseData;
-        return reservasData.map((item) => ReservaModel.fromJson(item)).toList();
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
+      // Simular confirmación exitosa
+      for (var reserva in _carritoLocal) {
+        reserva['estado'] = 'confirmada';
+        _reservasLocal.add(reserva);
       }
+      _carritoLocal.clear();
+      return true;
     } catch (e) {
-      print('[ReservaService] Error obteniendo reservas del emprendedor: $e');
-      rethrow;
+      print('Error al confirmar reservas: $e');
+      return false;
     }
   }
 
-  // GET /api/reservas/servicio/{servicioId}
-  Future<List<ReservaModel>> obtenerReservasServicio(int servicioId) async {
+  // Obtener mis reservas
+  Future<List<Map<String, dynamic>>> obtenerMisReservas() async {
     try {
-      print('[ReservaService] Obteniendo reservas del servicio ID: $servicioId');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/reservas/servicio/$servicioId'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta reservas servicio - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> reservasData = responseData['reservas'] ?? responseData;
-        return reservasData.map((item) => ReservaModel.fromJson(item)).toList();
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      return _reservasLocal;
     } catch (e) {
-      print('[ReservaService] Error obteniendo reservas del servicio: $e');
-      rethrow;
+      print('Error al obtener reservas: $e');
+      return [];
     }
   }
 
-  // GET /api/reservas
-  Future<List<ReservaModel>> obtenerTodasLasReservas() async {
+  // Obtener reservas por emprendedor
+  Future<List<Map<String, dynamic>>> obtenerReservasEmprendedor(int emprendedorId) async {
     try {
-      print('[ReservaService] Obteniendo todas las reservas...');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/reservas'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta todas las reservas - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        final List<dynamic> reservasData = responseData['reservas'] ?? responseData;
-        return reservasData.map((item) => ReservaModel.fromJson(item)).toList();
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      return _reservasLocal.where((r) => r['emprendedorId'] == emprendedorId).toList();
     } catch (e) {
-      print('[ReservaService] Error obteniendo todas las reservas: $e');
-      rethrow;
+      print('Error al obtener reservas del emprendedor: $e');
+      return [];
     }
   }
 
-  // POST /api/reservas
-  Future<Map<String, dynamic>> crearReserva(Map<String, dynamic> reservaData) async {
+  // Obtener reservas por servicio
+  Future<List<Map<String, dynamic>>> obtenerReservasServicio(int servicioId) async {
     try {
-      print('[ReservaService] Creando reserva: $reservaData');
-      
-      final response = await http.post(
-        Uri.parse('$_baseUrl/api/reservas'),
-        headers: _authHeaders,
-        body: jsonEncode(reservaData),
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta crear reserva - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      return _reservasLocal.where((r) => r['servicioId'] == servicioId).toList();
     } catch (e) {
-      print('[ReservaService] Error creando reserva: $e');
-      rethrow;
+      print('Error al obtener reservas del servicio: $e');
+      return [];
     }
   }
 
-  // GET /api/reservas/{id}
-  Future<ReservaModel> obtenerReservaPorId(int id) async {
+  // Obtener reserva por ID
+  Future<Map<String, dynamic>?> obtenerReservaPorId(int id) async {
     try {
-      print('[ReservaService] Obteniendo reserva ID: $id');
-      
-      final response = await http.get(
-        Uri.parse('$_baseUrl/api/reservas/$id'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta obtener reserva - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return ReservaModel.fromJson(responseData);
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      return _reservasLocal.firstWhere((r) => r['id'] == id);
     } catch (e) {
-      print('[ReservaService] Error obteniendo reserva: $e');
-      rethrow;
+      print('Error al obtener reserva por ID: $e');
+      return null;
     }
   }
 
-  // PUT /api/reservas/{id}
-  Future<Map<String, dynamic>> actualizarReserva(int id, Map<String, dynamic> reservaData) async {
+  // Actualizar estado de reserva
+  Future<bool> actualizarEstadoReserva(int reservaId, String nuevoEstado) async {
     try {
-      print('[ReservaService] Actualizando reserva ID: $id con datos: $reservaData');
-      
-      final response = await http.put(
-        Uri.parse('$_baseUrl/api/reservas/$id'),
-        headers: _authHeaders,
-        body: jsonEncode(reservaData),
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta actualizar reserva - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      final reserva = _reservasLocal.firstWhere((r) => r['id'] == reservaId);
+      reserva['estado'] = nuevoEstado;
+      return true;
     } catch (e) {
-      print('[ReservaService] Error actualizando reserva: $e');
-      rethrow;
+      print('Error al actualizar estado de reserva: $e');
+      return false;
     }
   }
 
-  // DELETE /api/reservas/{id}
-  Future<Map<String, dynamic>> eliminarReserva(int id) async {
+  // Eliminar reserva
+  Future<bool> eliminarReserva(int reservaId) async {
     try {
-      print('[ReservaService] Eliminando reserva ID: $id');
-      
-      final response = await http.delete(
-        Uri.parse('$_baseUrl/api/reservas/$id'),
-        headers: _authHeaders,
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta eliminar reserva - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
+      _reservasLocal.removeWhere((r) => r['id'] == reservaId);
+      return true;
     } catch (e) {
-      print('[ReservaService] Error eliminando reserva: $e');
-      rethrow;
-    }
-  }
-
-  // PUT /api/reservas/{id}/estado
-  Future<Map<String, dynamic>> actualizarEstadoReserva(int id, String estado) async {
-    try {
-      print('[ReservaService] Actualizando estado de reserva ID: $id a: $estado');
-      
-      final response = await http.put(
-        Uri.parse('$_baseUrl/api/reservas/$id/estado'),
-        headers: _authHeaders,
-        body: jsonEncode({'estado': estado}),
-      ).timeout(BackendConfig.requestTimeout);
-
-      print('[ReservaService] Respuesta actualizar estado - Status: ${response.statusCode}');
-      print('[ReservaService] Response body: ${response.body}');
-
-      final responseData = jsonDecode(response.body);
-      
-      if (response.statusCode == 200) {
-        return responseData;
-      } else {
-        throw _handleErrorResponse(responseData, response.statusCode);
-      }
-    } catch (e) {
-      print('[ReservaService] Error actualizando estado de reserva: $e');
-      rethrow;
-    }
-  }
-
-  // Método para verificar si el usuario está autenticado
-  bool get isAuthenticated => _token != null;
-
-  // Método para manejar errores de respuesta
-  String _handleErrorResponse(Map<String, dynamic> responseData, int statusCode) {
-    if (responseData['message'] != null && responseData['errors'] == null) {
-      return responseData['message'];
-    }
-
-    if (responseData['errors'] != null) {
-      final errors = responseData['errors'] as Map<String, dynamic>;
-      if (errors.isNotEmpty) {
-        final allMessages = errors.values
-            .expand((e) => e is List ? e : [e])
-            .join('\n');
-        return allMessages;
-      }
-    }
-
-    switch (statusCode) {
-      case 401:
-        return 'No autorizado. Debes iniciar sesión.';
-      case 403:
-        return 'Acceso denegado';
-      case 422:
-        return 'Datos de entrada inválidos';
-      case 500:
-        return 'Error interno del servidor';
-      default:
-        return 'Error de conexión (Código: $statusCode)';
+      print('Error al eliminar reserva: $e');
+      return false;
     }
   }
 } 

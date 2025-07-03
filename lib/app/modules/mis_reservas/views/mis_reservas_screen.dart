@@ -1,112 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/mis_reservas_controller.dart';
+import '../../../core/widgets/cart_icon_with_badge.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
-import '../../../core/widgets/cart_bottom_sheet.dart';
-import '../../../core/controllers/cart_controller.dart';
 
 class MisReservasScreen extends GetView<MisReservasController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = Get.isDarkMode;
     
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_rounded, color: theme.iconTheme.color),
-          onPressed: () => Get.back(),
-        ),
-        title: Text(
-          'Mis Reservas',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w700,
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAllNamed('/home');
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF0F172A) : theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              color: isDark ? Colors.white : theme.iconTheme.color,
+            ),
+            onPressed: () => Get.offAllNamed('/home'),
           ),
+          title: Text(
+            'Mis Reservas',
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF1A202C),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          elevation: 0,
+          backgroundColor: isDark ? const Color(0xFF1E3A8A) : theme.appBarTheme.backgroundColor,
+          actions: [
+            const CartIconWithBadge(),
+          ],
         ),
-        elevation: 0,
-        backgroundColor: theme.appBarTheme.backgroundColor,
-        actions: [
-          Obx(() {
-            final cartController = Get.find<CartController>();
-            final count = cartController.reservas.length;
-            return Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      builder: (_) => CartBottomSheet(
-                        reservas: cartController.reservas,
-                        onEliminar: cartController.eliminarReserva,
-                        onEditar: cartController.editarReserva,
-                        onConfirmar: cartController.confirmarReservas,
-                      ),
-                    );
-                  },
-                ),
-                if (count > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Text(
-                        '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }),
-          const ThemeToggleButton(),
-        ],
+        body: Obx(() {
+          if (controller.isLoading.value) {
+            return _buildLoadingState(context);
+          } else if (controller.error.isNotEmpty) {
+            return _buildErrorState(context);
+          } else if (controller.reservas.isEmpty) {
+            return _buildEmptyState(context);
+          } else {
+            return _buildReservasContent(context);
+          }
+        }),
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return _buildLoadingState(context);
-        } else if (controller.error.isNotEmpty) {
-          return _buildErrorState(context);
-        } else if (controller.reservas.isEmpty) {
-          return _buildEmptyState(context);
-        } else {
-          return _buildReservasContent(context);
-        }
-      }),
     );
   }
 
   Widget _buildLoadingState(BuildContext context) {
+    final isDark = Get.isDarkMode;
+    
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            color: Theme.of(context).primaryColor,
+            color: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
           ),
           const SizedBox(height: 16),
           Text(
             'Cargando reservas...',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.7),
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.grey[600],
+              fontSize: 16,
             ),
           ),
         ],
@@ -115,7 +78,7 @@ class MisReservasScreen extends GetView<MisReservasController> {
   }
 
   Widget _buildErrorState(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Get.isDarkMode;
     
     return Center(
       child: Padding(
@@ -131,17 +94,19 @@ class MisReservasScreen extends GetView<MisReservasController> {
             const SizedBox(height: 16),
             Text(
               'Error al cargar reservas',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: Colors.red[700],
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF1A202C),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               controller.error.value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.grey[600],
+                fontSize: 16,
               ),
               textAlign: TextAlign.center,
             ),
@@ -151,7 +116,7 @@ class MisReservasScreen extends GetView<MisReservasController> {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Reintentar'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
+                backgroundColor: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -166,7 +131,7 @@ class MisReservasScreen extends GetView<MisReservasController> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Get.isDarkMode;
     
     return Center(
       child: Padding(
@@ -177,21 +142,24 @@ class MisReservasScreen extends GetView<MisReservasController> {
             Icon(
               Icons.receipt_long_outlined,
               size: 64,
-              color: theme.primaryColor.withValues(alpha: 0.5),
+              color: isDark ? Colors.white38 : Colors.grey[400],
             ),
             const SizedBox(height: 16),
             Text(
               'No tienes reservas',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF1A202C),
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               'Cuando hagas una reserva, aparecerá aquí',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.grey[600],
+                fontSize: 16,
               ),
               textAlign: TextAlign.center,
             ),
@@ -201,7 +169,7 @@ class MisReservasScreen extends GetView<MisReservasController> {
               icon: const Icon(Icons.add_shopping_cart_rounded),
               label: const Text('Explorar Servicios'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: theme.primaryColor,
+                backgroundColor: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -217,24 +185,31 @@ class MisReservasScreen extends GetView<MisReservasController> {
 
   Widget _buildReservasContent(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = Get.isDarkMode;
     
     return RefreshIndicator(
       onRefresh: controller.cargarMisReservas,
+      color: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: controller.reservas.length,
         itemBuilder: (context, index) {
           final reserva = controller.reservas[index];
-          return _buildReservaCard(context, reserva, theme);
+          return _buildReservaCard(context, reserva);
         },
       ),
     );
   }
 
-  Widget _buildReservaCard(BuildContext context, reserva, ThemeData theme) {
+  Widget _buildReservaCard(BuildContext context, Map<String, dynamic> reserva) {
+    final isDark = Get.isDarkMode;
+    
     return Card(
-      elevation: 4,
-      shadowColor: theme.shadowColor.withValues(alpha: 0.1),
+      elevation: isDark ? 8 : 4,
+      shadowColor: isDark 
+        ? Colors.black.withOpacity(0.3)
+        : Colors.black.withOpacity(0.1),
+      color: isDark ? const Color(0xFF1E293B) : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -254,25 +229,30 @@ class MisReservasScreen extends GetView<MisReservasController> {
                   child: Container(
                     width: 80,
                     height: 80,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          theme.primaryColor,
-                          theme.primaryColor.withValues(alpha: 0.8),
-                        ],
-                      ),
+                    child: Image.asset(
+                      'assets/paquete-turistico1.jpg',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDark
+                                ? [const Color(0xFF1E3A8A), const Color(0xFF3B82F6)]
+                                : [const Color(0xFFFF6B35), const Color(0xFFFF8E53)],
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.image_rounded,
+                            size: 32,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        );
+                      },
                     ),
-                    child: reserva.servicio?.imagenUrl != null
-                        ? Image.network(
-                            reserva.servicio!.imagenUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildPlaceholderImage(theme);
-                            },
-                          )
-                        : _buildPlaceholderImage(theme),
                   ),
                 ),
                 
@@ -284,9 +264,11 @@ class MisReservasScreen extends GetView<MisReservasController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        reserva.servicio?.nombre ?? 'Servicio',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+                        reserva['servicio']?['nombre'] ?? 'Servicio',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : const Color(0xFF1A202C),
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -295,9 +277,10 @@ class MisReservasScreen extends GetView<MisReservasController> {
                       const SizedBox(height: 4),
                       
                       Text(
-                        reserva.emprendedor?.nombre ?? 'Emprendedor',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.primaryColor,
+                        reserva['emprendedor']?['nombre'] ?? 'Emprendedor Local',
+                        style: TextStyle(
+                          color: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -308,46 +291,22 @@ class MisReservasScreen extends GetView<MisReservasController> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: controller.getColorEstado(reserva.estado).withValues(alpha: 0.1),
+                          color: isDark 
+                            ? const Color(0xFF3B82F6).withOpacity(0.2)
+                            : const Color(0xFFFF6B35).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: controller.getColorEstado(reserva.estado),
-                            width: 1,
-                          ),
                         ),
                         child: Text(
-                          controller.getTextoEstado(reserva.estado),
-                          style: theme.textTheme.bodySmall?.copyWith(
+                          'Confirmada',
+                          style: TextStyle(
+                            color: isDark ? const Color(0xFF3B82F6) : const Color(0xFFFF6B35),
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: controller.getColorEstado(reserva.estado),
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                
-                // Precio
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      controller.formatearPrecio(reserva.precioTotal),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: theme.primaryColor,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 4),
-                    
-                    Text(
-                      'x${reserva.cantidad}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -356,128 +315,59 @@ class MisReservasScreen extends GetView<MisReservasController> {
             
             // Detalles de la reserva
             _buildDetailRow(
-              context,
               Icons.calendar_today_rounded,
-              'Fecha: ${controller.formatearFecha(reserva.fechaInicio)}',
-              theme,
+              'Fecha: ${reserva['fechaInicio']}',
+              isDark,
             ),
             
             const SizedBox(height: 8),
             
             _buildDetailRow(
-              context,
               Icons.access_time_rounded,
-              'Hora: ${reserva.horaInicio} - ${reserva.horaFin}',
-              theme,
+              'Hora: ${reserva['horaInicio']} - ${reserva['horaFin']}',
+              isDark,
             ),
             
             const SizedBox(height: 8),
             
             _buildDetailRow(
-              context,
               Icons.timer_rounded,
-              'Duración: ${reserva.duracionMinutos} minutos',
-              theme,
+              'Duración: ${reserva['duracionMinutos']} minutos',
+              isDark,
             ),
             
             const SizedBox(height: 8),
             
             _buildDetailRow(
-              context,
-              Icons.schedule_rounded,
-              'Reservado: ${controller.formatearFecha(reserva.createdAt.toIso8601String())}',
-              theme,
+              Icons.payment_rounded,
+              'Pago: ${reserva['metodoPago'] ?? 'efectivo'}',
+              isDark,
             ),
-            
-            // Método de pago
-            if (reserva.metodoPago != null) ...[
-              const SizedBox(height: 8),
-              _buildDetailRow(
-                context,
-                Icons.payment_rounded,
-                'Pago: ${reserva.metodoPago}',
-                theme,
-              ),
-            ],
-            
-            // Notas del cliente
-            if (reserva.notasCliente != null && reserva.notasCliente!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: theme.dividerColor,
-                    width: 1,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Notas:',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      reserva.notasCliente!,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailRow(BuildContext context, IconData icon, String text, ThemeData theme) {
+  Widget _buildDetailRow(IconData icon, String text, bool isDark) {
     return Row(
       children: [
         Icon(
           icon,
           size: 16,
-          color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+          color: isDark ? Colors.white60 : Colors.grey[600],
         ),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+            style: TextStyle(
+              color: isDark ? Colors.white70 : Colors.grey[700],
+              fontSize: 14,
             ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPlaceholderImage(ThemeData theme) {
-    return Container(
-      width: 80,
-      height: 80,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.primaryColor,
-            theme.primaryColor.withValues(alpha: 0.8),
-          ],
-        ),
-      ),
-      child: Icon(
-        Icons.image_rounded,
-        size: 32,
-        color: Colors.white.withValues(alpha: 0.3),
-      ),
     );
   }
 } 

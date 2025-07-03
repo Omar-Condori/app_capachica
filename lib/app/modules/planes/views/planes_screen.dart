@@ -1,108 +1,197 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/planes_controller.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/theme_toggle_button.dart';
+import '../../../core/widgets/cart_icon_with_badge.dart';
 import 'plan_card.dart';
-import '../../../core/widgets/cart_bottom_sheet.dart';
-import '../../../core/controllers/cart_controller.dart';
 
 class PlanesScreen extends GetView<PlanesController> {
   const PlanesScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Planes Turísticos',
-          style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Get.back(),
-        ),
-        actions: [
-          Obx(() {
-            final cartController = Get.find<CartController>();
-            final count = cartController.reservas.length;
-            return Stack(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      builder: (_) => CartBottomSheet(
-                        reservas: cartController.reservas,
-                        onEliminar: cartController.eliminarReserva,
-                        onEditar: cartController.editarReserva,
-                        onConfirmar: cartController.confirmarReservas,
-                      ),
-                    );
-                  },
-                ),
-                if (count > 0)
-                  Positioned(
-                    right: 8,
-                    top: 8,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      constraints: const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Text(
-                        '$count',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          }),
-          IconButton(
-            icon: Icon(Icons.refresh, color: AppColors.primary),
-            onPressed: () => controller.refreshPlanes(),
-          ),
-          const ThemeToggleButton(),
-        ],
-      ),
+      backgroundColor: isDark ? Color(0xFF0F1419) : Color(0xFFF8FAFC),
       body: Column(
         children: [
-          // Barra de búsqueda y filtros
-          _buildSearchAndFilters(),
-          
+          // Header moderno con gradiente
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              left: 16, 
+              right: 16, 
+              top: MediaQuery.of(context).padding.top + 8, 
+              bottom: 24
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark 
+                  ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                  : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark 
+                    ? Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                    : Color(0xFFFF6B35).withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Barra de navegación
+                Row(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+                        onPressed: () => Get.back(),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Planes Turísticos',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          Text(
+                            'Descubre experiencias únicas',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const CartIconWithBadge(iconColor: Colors.white),
+                    ),
+                    SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.refresh_rounded, color: Colors.white, size: 20),
+                        onPressed: () => controller.refreshPlanes(),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ThemeToggleButton(),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                // Barra de búsqueda elegante
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 15,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    onChanged: controller.filterByQuery,
+                    decoration: InputDecoration(
+                      hintText: '🔍 Buscar planes turísticos...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      ),
+                      prefixIcon: Container(
+                        margin: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFF6B35).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.search_rounded, 
+                          color: Color(0xFFFF6B35),
+                          size: 20,
+                        ),
+                      ),
+                      suffixIcon: Obx(() {
+                        if (controller.searchQuery.value.isNotEmpty) {
+                          return Container(
+                            margin: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: IconButton(
+                              icon: Icon(Icons.clear_rounded, color: Colors.grey[600], size: 18),
+                              onPressed: () => controller.filterByQuery(''),
+                            ),
+                          );
+                        }
+                        return SizedBox.shrink();
+                      }),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                    ),
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Filtros modernos
+          _buildModernFilters(isDark),
           // Contenido principal
           Expanded(
             child: Obx(() {
               if (controller.isCurrentlyLoading) {
-                return _buildLoadingState();
+                return _buildLoadingState(isDark);
               } else if (controller.hasError) {
-                return _buildErrorState();
+                return _buildErrorState(isDark);
               } else if (!controller.hasPlanes) {
-                return _buildEmptyState();
+                return _buildEmptyState(isDark);
               } else {
                 return _buildPlanesList();
               }
@@ -113,140 +202,193 @@ class PlanesScreen extends GetView<PlanesController> {
     );
   }
 
-  Widget _buildSearchAndFilters() {
+  Widget _buildModernFilters(bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Barra de búsqueda
-          TextField(
-            onChanged: controller.filterByQuery,
-            decoration: InputDecoration(
-              hintText: 'Buscar planes...',
-              prefixIcon: Icon(Icons.search, color: AppColors.primary),
-              suffixIcon: Obx(() {
-                if (controller.searchQuery.value.isNotEmpty) {
-                  return IconButton(
-                    icon: Icon(Icons.clear, color: AppColors.primary),
-                    onPressed: () => controller.filterByQuery(''),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: AppColors.primary, width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
+          Text(
+            '🎯 Filtrar por categoría',
+            style: TextStyle(
+              color: isDark ? Colors.white : Color(0xFF1A202C),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          
-          const SizedBox(height: 12),
-          
-          // Filtros de categoría
-          Row(
-            children: [
-              Text(
-                'Categoría:',
-                style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: controller.categorias.map((categoria) {
-                      return Obx(() {
-                        final isSelected = controller.selectedCategoria.value == categoria;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: FilterChip(
-                            label: Text(categoria),
-                            selected: isSelected,
-                            onSelected: (selected) {
-                              if (selected) {
-                                controller.filterByCategoria(categoria);
-                              } else {
-                                controller.filterByCategoria('');
-                              }
-                            },
-                            backgroundColor: Colors.grey[200],
-                            selectedColor: AppColors.primary.withOpacity(0.2),
-                            labelStyle: TextStyle(
-                              color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                            side: BorderSide(
-                              color: isSelected ? AppColors.primary : Colors.grey[300]!,
-                            ),
+          SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: controller.categorias.map((categoria) {
+                return Obx(() {
+                  final isSelected = controller.selectedCategoria.value == categoria;
+                  return Container(
+                    margin: EdgeInsets.only(right: 12),
+                    child: InkWell(
+                      onTap: () {
+                        if (isSelected) {
+                          controller.filterByCategoria('');
+                        } else {
+                          controller.filterByCategoria(categoria);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          gradient: isSelected 
+                            ? LinearGradient(
+                                colors: isDark 
+                                  ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                                  : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
+                              )
+                            : null,
+                          color: isSelected 
+                            ? null 
+                            : isDark 
+                              ? Color(0xFF2D3748).withValues(alpha: 0.6)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected 
+                              ? Colors.transparent
+                              : isDark 
+                                ? Color(0xFF3B82F6).withValues(alpha: 0.3)
+                                : Color(0xFFFF6B35).withValues(alpha: 0.3),
+                            width: 1,
                           ),
-                        );
-                      });
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ],
+                          boxShadow: isSelected ? [
+                            BoxShadow(
+                              color: isDark 
+                                ? Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : Color(0xFFFF6B35).withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ] : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          categoria,
+                          style: TextStyle(
+                            color: isSelected 
+                              ? Colors.white
+                              : isDark 
+                                ? Colors.white
+                                : Color(0xFF1A202C),
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                });
+              }).toList(),
+            ),
           ),
-          
           // Botón para limpiar filtros
           Obx(() {
             if (controller.searchQuery.value.isNotEmpty || 
                 (controller.selectedCategoria.value.isNotEmpty && controller.selectedCategoria.value != 'Todas')) {
               return Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: TextButton.icon(
-                  onPressed: controller.clearFilters,
-                  icon: Icon(Icons.clear_all, size: 16, color: AppColors.primary),
-                  label: Text(
-                    'Limpiar filtros',
-                    style: TextStyle(color: AppColors.primary, fontSize: 12),
+                padding: const EdgeInsets.only(top: 12),
+                child: InkWell(
+                  onTap: controller.clearFilters,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark 
+                        ? Color(0xFF3B82F6).withValues(alpha: 0.1)
+                        : Color(0xFFFF6B35).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark 
+                          ? Color(0xFF3B82F6).withValues(alpha: 0.3)
+                          : Color(0xFFFF6B35).withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.clear_all_rounded, 
+                             size: 16, color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)),
+                        SizedBox(width: 6),
+                        Text(
+                          'Limpiar filtros',
+                          style: TextStyle(
+                            color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), 
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
             }
-            return const SizedBox.shrink();
+            return SizedBox.shrink();
           }),
         ],
       ),
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Cargando planes...',
-            style: AppTheme.lightTextTheme.bodyLarge?.copyWith(
-              color: AppColors.textSecondary,
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark 
+                ? Color(0xFF2D3748).withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35)
+                  ),
+                  strokeWidth: 3,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Cargando planes turísticos...',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Color(0xFF1A202C),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Descubre las mejores experiencias',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Color(0xFF718096),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -254,45 +396,73 @@ class PlanesScreen extends GetView<PlanesController> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(bool isDark) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: AppColors.error,
+      child: Container(
+        margin: EdgeInsets.all(32),
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark 
+            ? Color(0xFF2D3748).withValues(alpha: 0.5)
+            : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.red.withValues(alpha: 0.2),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: Offset(0, 8),
             ),
-            const SizedBox(height: 16),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red,
+                size: 48,
+              ),
+            ),
+            SizedBox(height: 16),
             Text(
               'Error al cargar planes',
-              style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: isDark ? Colors.white : Color(0xFF1A202C),
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Obx(() => Text(
               controller.errorMessage.value,
-              style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Color(0xFF718096),
+                fontSize: 14,
+                height: 1.4,
               ),
               textAlign: TextAlign.center,
             )),
-            const SizedBox(height: 24),
+            SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => controller.refreshPlanes(),
-              icon: Icon(Icons.refresh),
+              icon: Icon(Icons.refresh_rounded, size: 20),
               label: Text('Reintentar'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Color(0xFFFF6B35),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
@@ -302,45 +472,69 @@ class PlanesScreen extends GetView<PlanesController> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: AppColors.textSecondary,
+      child: Container(
+        margin: EdgeInsets.all(32),
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isDark 
+            ? Color(0xFF2D3748).withValues(alpha: 0.5)
+            : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: Offset(0, 8),
             ),
-            const SizedBox(height: 16),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Color(0xFFFF6B35).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                Icons.search_off_rounded,
+                color: Color(0xFFFF6B35),
+                size: 48,
+              ),
+            ),
+            SizedBox(height: 16),
             Text(
               'No se encontraron planes',
-              style: AppTheme.lightTextTheme.headlineSmall?.copyWith(
-                color: AppColors.textPrimary,
+              style: TextStyle(
+                color: isDark ? Colors.white : Color(0xFF1A202C),
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
-              'Intenta ajustar tus filtros de búsqueda',
-              style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
+              'Intenta ajustar tus filtros de búsqueda o explora otras categorías.',
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Color(0xFF718096),
+                fontSize: 14,
+                height: 1.4,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => controller.clearFilters(),
-              icon: Icon(Icons.clear_all),
+              icon: Icon(Icons.clear_all_rounded, size: 20),
               label: Text('Limpiar filtros'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: Color(0xFFFF6B35),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
             ),
@@ -353,18 +547,15 @@ class PlanesScreen extends GetView<PlanesController> {
   Widget _buildPlanesList() {
     return RefreshIndicator(
       onRefresh: controller.refreshPlanes,
-      color: AppColors.primary,
+      color: Color(0xFFFF6B35),
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         itemCount: controller.planesFiltrados.length,
         itemBuilder: (context, index) {
           final plan = controller.planesFiltrados[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: PlanCard(
-              plan: plan,
-              onTap: () => controller.navigateToPlanDetalle(plan),
-            ),
+          return PlanCard(
+            plan: plan,
+            onTap: () => controller.navigateToPlanDetalle(plan),
           );
         },
       ),

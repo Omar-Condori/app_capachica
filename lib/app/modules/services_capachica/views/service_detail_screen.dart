@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
-import '../../../core/widgets/cart_icon_button.dart';
+import '../../../core/widgets/cart_icon_with_badge.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServicioCapachica servicio;
@@ -83,8 +83,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
           onPressed: () => Get.back(),
         ),
         actions: [
-          CartIconButton(iconColor: Colors.white),
-          const ThemeToggleButton(),
+          const CartIconWithBadge(),
         ],
       ),
       body: SingleChildScrollView(
@@ -358,7 +357,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                         disponibilidadMensaje = '';
                         horarioDisponible = false;
                       });
-                      List<ReservaModel> reservas = [];
+                      List<Map<String, dynamic>> reservas = [];
                       try {
                         reservas = await reservaService.obtenerMisReservas();
                       } catch (e) {
@@ -375,9 +374,9 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                       final horaFin = horaFinController.text.trim();
                       bool disponible = true;
                       for (final r in reservas) {
-                        if (r.fechaInicio == fecha) {
+                        if (r['fechaInicio'] == fecha) {
                           // Si hay cruce de horas
-                          if (!(horaFin.compareTo(r.horaInicio) <= 0 || horaInicio.compareTo(r.horaFin) >= 0)) {
+                          if (!(horaFin.compareTo(r['horaInicio']) <= 0 || horaInicio.compareTo(r['horaFin']) >= 0)) {
                             disponible = false;
                             break;
                           }
@@ -415,51 +414,40 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
                     ? () async {
                         try {
                           final cartController = Get.find<CartController>();
-                          final reserva = ReservaModel(
-                            id: DateTime.now().millisecondsSinceEpoch, // ID temporal
-                            servicioId: widget.servicio.id,
-                            emprendedorId: widget.servicio.emprendedorId,
-                            fechaInicio: fechaController.text,
-                            fechaFin: fechaController.text,
-                            horaInicio: horaInicioController.text,
-                            horaFin: horaFinController.text,
-                            duracionMinutos: int.tryParse(duracionController.text) ?? 60,
-                            cantidad: int.tryParse(cantidadController.text) ?? 1,
-                            notasCliente: notasController.text.isNotEmpty ? notasController.text : null,
-                            estado: 'pendiente',
-                            metodoPago: null,
-                            precioTotal: double.tryParse(widget.servicio.precioReferencial) ?? 0,
-                            createdAt: DateTime.now(),
-                            servicio: ServicioReserva(
-                              id: widget.servicio.id,
-                              nombre: widget.servicio.nombre,
-                              descripcion: widget.servicio.descripcion,
-                              precioReferencial: double.tryParse(widget.servicio.precioReferencial) ?? 0,
-                              imagenUrl: null,
-                            ),
-                            emprendedor: EmprendedorReserva(
-                              id: widget.servicio.emprendedor.id,
-                              nombre: widget.servicio.emprendedor.nombre,
-                              tipoServicio: widget.servicio.emprendedor.tipoServicio,
-                            ),
-                          );
-                          cartController.agregarReserva(reserva);
+                          final reserva = {
+                            'id': DateTime.now().millisecondsSinceEpoch,
+                            'servicioId': widget.servicio.id,
+                            'emprendedorId': widget.servicio.emprendedorId,
+                            'fechaInicio': fechaController.text,
+                            'fechaFin': fechaController.text,
+                            'horaInicio': horaInicioController.text,
+                            'horaFin': horaFinController.text,
+                            'duracionMinutos': int.tryParse(duracionController.text) ?? 60,
+                            'cantidad': int.tryParse(cantidadController.text) ?? 1,
+                            'notasCliente': notasController.text.isNotEmpty ? notasController.text : null,
+                            'estado': 'pendiente',
+                            'metodoPago': null,
+                            'precioTotal': double.tryParse(widget.servicio.precioReferencial) ?? 0,
+                            'createdAt': DateTime.now().toIso8601String(),
+                            'servicio': {
+                              'id': widget.servicio.id,
+                              'nombre': widget.servicio.nombre,
+                              'descripcion': widget.servicio.descripcion,
+                              'precioReferencial': double.tryParse(widget.servicio.precioReferencial) ?? 0,
+                              'imagenUrl': '', // ServicioCapachica no tiene imagenUrl
+                            },
+                            'emprendedor': {
+                              'id': widget.servicio.emprendedor.id,
+                              'nombre': widget.servicio.emprendedor.nombre,
+                              'tipoServicio': widget.servicio.emprendedor.tipoServicio,
+                            },
+                          };
+                          await cartController.agregarReserva(reserva);
                           Get.back();
+                          // Mostrar diálogo de confirmación después de cerrar el formulario
                           Future.delayed(const Duration(milliseconds: 300), () {
-                            Get.bottomSheet(
-                              CartBottomSheet(
-                                reservas: cartController.reservas,
-                                onEliminar: cartController.eliminarReserva,
-                                onEditar: cartController.editarReserva,
-                                onConfirmar: cartController.confirmarReservas,
-                              ),
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                              ),
-                            );
+                            cartController.mostrarDialogoConfirmacion();
                           });
-                          Get.snackbar('¡Reserva agregada!', 'Tu reserva fue añadida al carrito.', backgroundColor: Colors.green, colorText: Colors.white);
                         } catch (e) {
                           Get.snackbar('Error', 'No se pudo agregar la reserva: $e', backgroundColor: Colors.red, colorText: Colors.white);
                         }

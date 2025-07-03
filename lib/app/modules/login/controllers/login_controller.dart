@@ -53,12 +53,19 @@ class LoginController extends GetxController {
             final cartController = Get.find<CartController>();
             Get.bottomSheet(
               CartBottomSheet(
-                reservas: cartController.reservas,
-                onEliminar: cartController.eliminarReserva,
+                items: cartController.items,
+                onEliminar: cartController.eliminarDelCarrito,
                 onEditar: cartController.editarReserva,
-                onConfirmar: cartController.confirmarReservas,
+                onConfirmar: ({String? notas, String metodoPago = 'efectivo'}) {
+                  final request = {
+                    'notas': notas,
+                    'metodoPago': metodoPago,
+                  };
+                  cartController.confirmarReserva(request);
+                },
               ),
               isScrollControlled: true,
+              backgroundColor: Get.isDarkMode ? const Color(0xFF1E293B) : Colors.white,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),

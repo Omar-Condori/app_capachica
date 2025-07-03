@@ -3,9 +3,46 @@ import 'package:get/get.dart';
 import '../controllers/home_controller.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
-import '../../../core/widgets/cart_icon_button.dart';
+import '../../../core/widgets/cart_icon_with_badge.dart';
+import 'dart:math';
 
 class HomeScreen extends GetView<HomeController> {
+  final List<String> assetImages = [
+    'assets/lugar-turistico-line1-1.jpg',
+    'assets/lugar-turistico-line1-2.jpg',
+    'assets/lugar-turistico-line2-1.jpg',
+    'assets/lugar-turistico-line2-2.jpg',
+    'assets/lugar-turistico-line3-1.jpg',
+    'assets/lugar-turistico-line3-2.jpg',
+    'assets/lugar-turistico-line4-1.jpg',
+    'assets/lugar-turistico-line4-2.jpg',
+    'assets/lugar-turistico-line5-1.jpg',
+    'assets/lugar-turistico-line5-2.jpg',
+    'assets/lugar-turistico1.jpg',
+    'assets/lugar-turistico2.jpg',
+    'assets/lugar-turistico3.jpg',
+    'assets/lugar-turistico4.jpg',
+    'assets/lugar-turistico5.jpg',
+    'assets/lugar-turistico6.jpg',
+    'assets/paquete-turistico-line1-1.jpg',
+    'assets/paquete-turistico-line1-2.jpg',
+    'assets/paquete-turistico-line2-1.jpg',
+    'assets/paquete-turistico-line2-2.jpg',
+    'assets/paquete-turistico-line3-1.jpg',
+    'assets/paquete-turistico-line3-2.jpg',
+    'assets/paquete-turistico-line4-1.jpg',
+    'assets/paquete-turistico-line4-2.jpg',
+    'assets/paquete-turistico1.jpg',
+    'assets/paquete-turistico2.jpg',
+    'assets/paquete-turistico3.jpg',
+    'assets/paquete-turistico4.jpg',
+  ];
+
+  String getRandomAssetImage([int? seed]) {
+    final rand = Random(seed);
+    return assetImages[rand.nextInt(assetImages.length)];
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -60,7 +97,7 @@ class HomeScreen extends GetView<HomeController> {
                   alignment: Alignment.topRight,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 10, right: 18),
-                    child: CartIconButton(iconColor: Colors.white, iconSize: 22),
+                    child: const CartIconWithBadge(iconColor: Colors.white, iconSize: 22),
                   ),
                 ),
                 // Expanded con cards modernas para sliders y municipalidades
@@ -70,29 +107,6 @@ class HomeScreen extends GetView<HomeController> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Card de sliders (Tus viajes)
-                        Obx(() {
-                          final resumen = controller.resumenData.value;
-                          if (resumen == null || resumen.sliders.isEmpty) return SizedBox.shrink();
-                          return _buildModernCardSection(
-                            context,
-                            title: 'Tus viajes',
-                            child: SizedBox(
-                              height: 180,
-                              child: ListView.separated(
-                                scrollDirection: Axis.horizontal,
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                itemCount: resumen.sliders.length,
-                                separatorBuilder: (_, __) => SizedBox(width: 16),
-                                itemBuilder: (ctx, i) {
-                                  final slider = resumen.sliders[i];
-                                  return _buildSliderCard(slider, isDark);
-                                },
-                              ),
-                            ),
-                          );
-                        }),
-                        SizedBox(height: 18),
                         // Card de municipalidades (Tus búsquedas recientes)
                         Obx(() {
                           final resumen = controller.resumenData.value;
@@ -730,122 +744,146 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget _buildSliderCard(slider, bool isDark) {
-    return Container(
-      width: 260,
-      decoration: BoxDecoration(
-        color: isDark ? Color(0xFF182447) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-        image: slider.imageUrl != null && slider.imageUrl.isNotEmpty
-            ? DecorationImage(
-                image: NetworkImage(slider.imageUrl),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.18),
-                  BlendMode.darken,
-                ),
-              )
-            : null,
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.black.withOpacity(0.45) : Colors.white.withOpacity(0.85),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(18),
-                  bottomRight: Radius.circular(18),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    slider.title,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Color(0xFF222B45),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (slider.description != null && slider.description.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Text(
-                        slider.description,
-                        style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.grey[700],
-                          fontSize: 13,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMunicipalidadCard(muni, bool isDark) {
+    String url = 'https://images.unsplash.com/photo-1464983953574-0892a716854b';
+    if (muni.slidersPrincipales.isNotEmpty &&
+        muni.slidersPrincipales.first.imageUrl.isNotEmpty) {
+      url = muni.slidersPrincipales.first.imageUrl;
+    }
+
     return Container(
       width: 200,
       decoration: BoxDecoration(
-        color: isDark ? Color(0xFF182447) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.18) : Colors.grey.withOpacity(0.10),
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            color: isDark 
+              ? Colors.black.withOpacity(0.3)
+              : Colors.grey.withOpacity(0.15),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(40),
+        child: Stack(
           children: [
-            Text(
-              muni.nombre,
-              style: TextStyle(
-                color: isDark ? Colors.white : Color(0xFF222B45),
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (muni.descripcion != null && muni.descripcion.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4.0),
-                child: Text(
-                  muni.descripcion,
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.grey[700],
-                    fontSize: 12,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(url),
+                  fit: BoxFit.cover,
                 ),
               ),
+            ),
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withOpacity(0.7),
+                  ],
+                  stops: [0.4, 1.0],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      muni.nombre,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.5),
+                            offset: Offset(0, 1),
+                            blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (muni.descripcion != null && muni.descripcion.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          muni.descripcion,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 12,
+                            height: 1.3,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withOpacity(0.5),
+                                offset: Offset(0, 1),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white.withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

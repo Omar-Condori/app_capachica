@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../data/models/plan_model.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 
 class PlanCard extends StatelessWidget {
   final Plan plan;
@@ -9,191 +7,354 @@ class PlanCard extends StatelessWidget {
 
   const PlanCard({super.key, required this.plan, required this.onTap});
 
+  // Lista de imágenes de assets para asignar rotativamente
+  static const List<String> _assetImages = [
+    'assets/paquete-turistico1.jpg',
+    'assets/paquete-turistico2.jpg',
+    'assets/paquete-turistico3.jpg',
+    'assets/paquete-turistico4.jpg',
+    'assets/paquete-turistico-line1-1.jpg',
+    'assets/paquete-turistico-line1-2.jpg',
+    'assets/paquete-turistico-line2-1.jpg',
+    'assets/paquete-turistico-line2-2.jpg',
+    'assets/paquete-turistico-line3-1.jpg',
+    'assets/paquete-turistico-line3-2.jpg',
+    'assets/paquete-turistico-line4-1.jpg',
+    'assets/paquete-turistico-line4-2.jpg',
+  ];
+
+  String _getAssetImage(int index) {
+    return _assetImages[index % _assetImages.length];
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+              ? Colors.black.withValues(alpha: 0.3)
+              : Color(0xFFFF6B35).withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: Offset(0, 8),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                AppColors.background.withValues(alpha: 0.1),
-              ],
-            ),
+            color: isDark ? Color(0xFF1A2332) : Colors.white,
+            borderRadius: BorderRadius.circular(24),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Imagen del plan
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: plan.imagenUrl != null && plan.imagenUrl!.isNotEmpty
-                      ? Image.network(
-                          plan.imagenUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
-                        )
-                      : _buildPlaceholderImage(),
-                ),
-              ),
-              
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Imagen con overlay y badge de precio
+                Stack(
                   children: [
-                    // Título y precio
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            plan.titulo,
-                            style: AppTheme.lightTextTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      child: Image.asset(
+                        _getAssetImage(plan.id.hashCode),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => 
+                          _buildPlaceholderImage(isDark),
+                      ),
+                    ),
+                    // Gradiente overlay
+                    Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.3),
+                            Colors.black.withValues(alpha: 0.7),
+                          ],
+                          stops: [0.0, 0.6, 1.0],
+                        ),
+                      ),
+                    ),
+                    // Badge de precio
+                    if (plan.precio != null)
+                      Positioned(
+                        top: 16,
+                        right: 16,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isDark 
+                                ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                                : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isDark 
+                                  ? Color(0xFF1E3A8A).withValues(alpha: 0.4)
+                                  : Color(0xFFFF6B35).withValues(alpha: 0.4),
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.attach_money_rounded, 
+                                   color: Colors.white, size: 18),
+                              Text(
+                                plan.precio!.toStringAsFixed(0),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        if (plan.precio != null) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '\$${plan.precio!.toStringAsFixed(2)}',
-                              style: AppTheme.lightTextTheme.titleMedium?.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
+                      ),
+                    // Badge de duración
+                    if (plan.duracion != null)
+                      Positioned(
+                        top: 16,
+                        left: 16,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // Descripción
-                    if (plan.descripcion != null && plan.descripcion!.isNotEmpty)
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.access_time_rounded, 
+                                   color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35), size: 16),
+                              SizedBox(width: 4),
+                                                              Text(
+                                  '${plan.duracion} días',
+                                  style: TextStyle(
+                                    color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    // Rating badge
+                    if (plan.rating != null)
+                      Positioned(
+                        bottom: 16,
+                        right: 16,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFFFC107).withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.2),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.star_rounded, 
+                                   color: Colors.white, size: 16),
+                              SizedBox(width: 4),
+                              Text(
+                                plan.rating!.toStringAsFixed(1),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                // Contenido del card
+                Container(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Título del plan
                       Text(
-                        plan.descripcion!,
-                        style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                        plan.titulo,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Color(0xFF1A202C),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Información adicional
-                    Row(
-                      children: [
-                        if (plan.duracion != null) ...[
-                          _infoChip(Icons.schedule, '${plan.duracion} días'),
-                          const SizedBox(width: 8),
-                        ],
-                        if (plan.ubicacion != null) ...[
-                          _infoChip(Icons.location_on, plan.ubicacion!),
-                          const SizedBox(width: 8),
-                        ],
-                        if (plan.rating != null) ...[
-                          _infoChip(Icons.star, plan.rating!.toStringAsFixed(1), color: Colors.amber),
-                        ],
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // Botón de ver más
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: onTap,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                      SizedBox(height: 8),
+                      // Ubicación si está disponible
+                      if (plan.ubicacion != null && plan.ubicacion!.isNotEmpty)
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.location_on_rounded,
+                              color: isDark ? Color(0xFF3B82F6) : Color(0xFFFF6B35),
+                              size: 16,
+                            ),
+                            SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                plan.ubicacion!,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Color(0xFF718096),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          'Ver detalles',
-                          style: AppTheme.lightTextTheme.labelLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                      SizedBox(height: 12),
+                      // Descripción
+                      if (plan.descripcion != null && plan.descripcion!.isNotEmpty)
+                        Text(
+                          plan.descripcion!,
+                          style: TextStyle(
+                            color: isDark ? Colors.white.withValues(alpha: 0.9) : Color(0xFF4A5568),
+                            fontSize: 15,
+                            height: 1.4,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      SizedBox(height: 16),
+                      // Botón de acción moderno
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark 
+                              ? [Color(0xFF1E3A8A), Color(0xFF3B82F6)]  // Azul noche para modo oscuro
+                              : [Color(0xFFFF6B35), Color(0xFFFF8E53)], // Naranja para modo claro
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDark 
+                                ? Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                : Color(0xFFFF6B35).withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onTap,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.visibility_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Ver detalles',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPlaceholderImage() {
+  Widget _buildPlaceholderImage(bool isDark) {
     return Container(
-      color: AppColors.primary.withValues(alpha: 0.08),
+      height: 200,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFF6B35).withValues(alpha: 0.3),
+            Color(0xFFFF8E53).withValues(alpha: 0.6),
+          ],
+        ),
+      ),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image_not_supported, size: 48, color: AppColors.primary),
-            const SizedBox(height: 8),
+            Icon(
+              Icons.image_rounded,
+              size: 48,
+              color: Colors.white.withValues(alpha: 0.8),
+            ),
+            SizedBox(height: 8),
             Text(
               'Imagen no disponible',
-              style: AppTheme.lightTextTheme.bodyMedium?.copyWith(
-                color: AppColors.primary,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _infoChip(IconData icon, String text, {Color? color}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: (color ?? AppColors.primary).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color ?? AppColors.primary),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: AppTheme.lightTextTheme.bodySmall?.copyWith(
-              color: color ?? AppColors.primary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }

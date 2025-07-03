@@ -7,9 +7,13 @@ import '../../../services/reserva_service.dart';
 import 'service_detail_screen.dart';
 import '../../../core/widgets/cart_bottom_sheet.dart';
 import '../../../core/controllers/cart_controller.dart';
-import '../../../core/widgets/cart_icon_button.dart';
+import '../../../core/widgets/cart_icon_with_badge.dart';
+import '../../../services/auth_service.dart';
+import '../../../data/models/servicio_model.dart';
 
 class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
+  const ServicesCapachicaScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -32,7 +36,7 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
         backgroundColor: theme.appBarTheme.backgroundColor,
         shadowColor: theme.shadowColor.withOpacity(0.08),
         actions: [
-          CartIconButton(),
+          const CartIconWithBadge(),
           const ThemeToggleButton(),
         ],
       ),
@@ -356,12 +360,20 @@ class ServicesCapachicaScreen extends GetView<ServicesCapachicaController> {
           itemCount: controller.serviciosFiltrados.length,
           itemBuilder: (context, index) {
             final servicio = controller.serviciosFiltrados[index];
+            // Convertir ServicioCapachica a ServicioModel
+            final servicioModel = ServicioModel(
+              id: servicio.id.toString(),
+              emprendedorId: servicio.emprendedor.id.toString(),
+              nombre: servicio.nombre,
+              descripcion: servicio.descripcion,
+              precio: double.tryParse(servicio.precioReferencial) ?? 0.0,
+              imagenUrl: '', // ServicioCapachica no tiene imagenUrl
+              categoria: 'General', // ServicioCapachica no tiene categoria
+            );
+            
             return ModernServiceCard(
-              servicio: servicio,
+              servicio: servicioModel,
               onTap: () {
-                Get.to(() => ServiceDetailScreen(servicio: servicio));
-              },
-              onVerDetalle: () {
                 Get.to(() => ServiceDetailScreen(servicio: servicio));
               },
             );

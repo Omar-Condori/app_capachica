@@ -14,6 +14,7 @@ class AuthService extends GetxService {
   final isLoggedInRx = false.obs;
 
   bool get isLoggedIn => token.value != null;
+  bool get isAuthenticated => currentUser.value != null;
   
   // Getter para obtener la URL actual
   String get baseUrl => _baseUrl;

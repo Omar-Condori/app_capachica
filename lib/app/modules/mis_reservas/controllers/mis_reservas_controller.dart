@@ -1,12 +1,11 @@
 import 'package:get/get.dart';
 import '../../../services/reserva_service.dart';
-import '../../../data/models/reserva_model.dart';
 import 'package:flutter/material.dart';
 
 class MisReservasController extends GetxController {
   final ReservaService _reservaService = Get.find<ReservaService>();
   
-  final reservas = <ReservaModel>[].obs;
+  final reservas = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
   final error = ''.obs;
 
@@ -32,17 +31,17 @@ class MisReservasController extends GetxController {
   }
 
   // Filtrar reservas por estado
-  List<ReservaModel> get reservasPendientes => 
-      reservas.where((r) => r.estado == 'pendiente').toList();
+  List<Map<String, dynamic>> get reservasPendientes => 
+      reservas.where((r) => r['estado'] == 'pendiente').toList();
   
-  List<ReservaModel> get reservasConfirmadas => 
-      reservas.where((r) => r.estado == 'confirmada').toList();
+  List<Map<String, dynamic>> get reservasConfirmadas => 
+      reservas.where((r) => r['estado'] == 'confirmada').toList();
   
-  List<ReservaModel> get reservasCompletadas => 
-      reservas.where((r) => r.estado == 'completada').toList();
+  List<Map<String, dynamic>> get reservasCompletadas => 
+      reservas.where((r) => r['estado'] == 'completada').toList();
   
-  List<ReservaModel> get reservasCanceladas => 
-      reservas.where((r) => r.estado == 'cancelada').toList();
+  List<Map<String, dynamic>> get reservasCanceladas => 
+      reservas.where((r) => r['estado'] == 'cancelada').toList();
 
   // Obtener el color del estado
   Color getColorEstado(String estado) {
@@ -77,12 +76,12 @@ class MisReservasController extends GetxController {
   }
 
   // Cancelar reserva
-  Future<void> cancelarReserva(ReservaModel reserva) async {
+  Future<void> cancelarReserva(Map<String, dynamic> reserva) async {
     try {
       isLoading.value = true;
       error.value = '';
       
-      await _reservaService.actualizarEstadoReserva(reserva.id, 'cancelada');
+      await _reservaService.actualizarEstadoReserva(reserva['id'], 'cancelada');
       
       // Recargar las reservas
       await cargarMisReservas();
@@ -109,12 +108,12 @@ class MisReservasController extends GetxController {
   }
 
   // Marcar como completada
-  Future<void> marcarComoCompletada(ReservaModel reserva) async {
+  Future<void> marcarComoCompletada(Map<String, dynamic> reserva) async {
     try {
       isLoading.value = true;
       error.value = '';
       
-      await _reservaService.actualizarEstadoReserva(reserva.id, 'completada');
+      await _reservaService.actualizarEstadoReserva(reserva['id'], 'completada');
       
       // Recargar las reservas
       await cargarMisReservas();
@@ -141,12 +140,12 @@ class MisReservasController extends GetxController {
   }
 
   // Eliminar reserva
-  Future<void> eliminarReserva(ReservaModel reserva) async {
+  Future<void> eliminarReserva(Map<String, dynamic> reserva) async {
     try {
       isLoading.value = true;
       error.value = '';
       
-      await _reservaService.eliminarReserva(reserva.id);
+      await _reservaService.eliminarReserva(reserva['id']);
       
       // Recargar las reservas
       await cargarMisReservas();
@@ -173,7 +172,7 @@ class MisReservasController extends GetxController {
   }
 
   // Obtener reservas por emprendedor
-  Future<List<ReservaModel>> obtenerReservasEmprendedor(int emprendedorId) async {
+  Future<List<Map<String, dynamic>>> obtenerReservasEmprendedor(int emprendedorId) async {
     try {
       return await _reservaService.obtenerReservasEmprendedor(emprendedorId);
     } catch (e) {
@@ -183,7 +182,7 @@ class MisReservasController extends GetxController {
   }
 
   // Obtener reservas por servicio
-  Future<List<ReservaModel>> obtenerReservasServicio(int servicioId) async {
+  Future<List<Map<String, dynamic>>> obtenerReservasServicio(int servicioId) async {
     try {
       return await _reservaService.obtenerReservasServicio(servicioId);
     } catch (e) {
@@ -193,7 +192,7 @@ class MisReservasController extends GetxController {
   }
 
   // Obtener reserva por ID
-  Future<ReservaModel?> obtenerReservaPorId(int id) async {
+  Future<Map<String, dynamic>?> obtenerReservaPorId(int id) async {
     try {
       return await _reservaService.obtenerReservaPorId(id);
     } catch (e) {
@@ -210,8 +209,8 @@ class MisReservasController extends GetxController {
   int get reservasCanceladasCount => reservasCanceladas.length;
 
   double get totalGastado => reservas
-      .where((r) => r.estado == 'completada')
-      .fold(0.0, (sum, r) => sum + r.precioTotal);
+      .where((r) => r['estado'] == 'completada')
+      .fold(0.0, (sum, r) => sum + (r['precioTotal'] ?? 0.0));
 
   // Formatear fecha
   String formatearFecha(String fecha) {
